@@ -1,0 +1,11 @@
+{
+  "review_id": "portal-hubbi_20261011_1230",
+  "target": "src/ (portal, landing, telas de acesso)",
+  "focus_areas": ["visual", "usability", "accessibility", "code"],
+  "context": "Reserva de espaços de coworking (busca, resumo, confirmação, detalhe)",
+  "platform": "Responsivo (1920 a 360 px)",
+  "status": "complete",
+  "started_at": "2026-10-11T12:30:00-03:00",
+  "issues_found": 12,
+  "severity_counts": { "critical": 2, "major": 4, "minor": 3, "suggestion": 3 }
+}
