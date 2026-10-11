@@ -8,7 +8,8 @@ import type { ArrivalMode } from '../../domain/types';
 import { daysBetween, hhmm, longDay, shortDay } from '../../lib/dates';
 import { brl, formatDuration, round2 } from '../../lib/format';
 import { useDocumentTitle } from '../../lib/useDocumentTitle';
-import { sessionClient, spaceById, useDB } from '../../store/store';
+import { ExtrasStatus } from '../../features/portal/extras/Extras';
+import { extrasOf, sessionClient, spaceById, useDB } from '../../store/store';
 
 const ARRIVAL_LABEL: Record<ArrivalMode, string> = {
   walk: 'a pé', bike: 'de bicicleta', transit: 'de transporte público', carpool: 'de carona', electric: 'de veículo elétrico',
@@ -79,6 +80,7 @@ export default function BookingConfirmation() {
         </dl>
         <p className="bn-frozen">Valor gravado na reserva: não muda se o preço do espaço ou o seu plano mudarem.</p>
       </section>
+      {extrasOf(db, booking.id) && <div className="conf-extras"><ExtrasStatus order={extrasOf(db, booking.id)} /></div>}
 
       <aside className="card conf-aside" aria-labelledby="conf-next-t">
         <h2 id="conf-next-t">Próximos passos</h2>

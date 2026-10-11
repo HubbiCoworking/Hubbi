@@ -15,6 +15,7 @@ const ARRIVAL_LABEL: Record<ArrivalMode, string> = { walk: 'a pé', bike: 'de bi
 const KIND_LABEL: Record<PointsEntry['kind'], string> = {
   completed: 'Reserva concluída', streak: 'Bônus de sequência', clean_arrival: 'Chegada limpa',
   redeem: 'Resgate', refund: 'Devolução', expired: 'Vencimento',
+  extra_redeem: 'Troca por item', extra_refund: 'Devolução',
 };
 const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
 
@@ -36,8 +37,10 @@ export default function Rewards() {
   const balance = pointsBalance(entries);
   const { cost, canRedeem, progress, missing } = redeemProgress(balance);
   const streak = currentStreak(bookings) % STREAK_SIZE;
-  const earned = entries.filter((e) => e.points > 0).reduce((s, e) => s + e.points, 0);
-  const used = -entries.filter((e) => e.points < 0).reduce((s, e) => s + e.points, 0);
+  // Devoluções desfazem um uso: abatem de "Usados" em vez de contar como ganho.
+  const isRefund = (e: PointsEntry) => e.kind === 'refund' || e.kind === 'extra_refund';
+  const earned = entries.filter((e) => e.points > 0 && !isRefund(e)).reduce((s, e) => s + e.points, 0);
+  const used = -entries.filter((e) => e.points < 0 || isRefund(e)).reduce((s, e) => s + e.points, 0);
   const oldestPositive = [...entries].reverse().find((e) => e.points > 0);
   const nextExpiry = oldestPositive ? new Date(new Date(oldestPositive.date).setMonth(new Date(oldestPositive.date).getMonth() + POINTS_VALID_MONTHS)) : null;
 

@@ -137,7 +137,7 @@ export default function Spaces() {
   }, [date, start, hours, filters, scenario, db.bookings]);
 
   const priceOf = (s: Space) => priceBooking(s.hourly, hours, discount);
-  const bookHref = (s: Space) => `/app/bookings/new?space=${s.id}&date=${date}&start=${start}&hours=${hours}`;
+  const bookHref = (s: Space) => `/app/bookings/new?space=${s.id}&date=${date}&start=${start}&hours=${hours}${need ? `&need=${need}` : ''}`;
 
   let results: ReactNode;
   if (scenario === 'loading') {

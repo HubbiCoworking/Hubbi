@@ -98,10 +98,11 @@ As telas novas recebem os próximos códigos livres, T46 e T47 (princípio V).
 | 3 | Recuperar senha | T03 | `/forgot-password` | Pronta | FR-002 |
 | 4 | Início do portal | T45 | `/app` | Pronta | FR-003, RN13 |
 | 5 | Espaços: busca e lista com filtros | T04 | `/app/spaces` | Pronta | FR-003, FR-004, FR-023, RN01–RN05, RN20 |
-| 6 | Resumo da reserva | T07 | `/app/bookings/new` | Pronta | FR-004, FR-005, FR-025, FR-026, RN02–RN06, RN12, RN13, RN22, RN23 |
-| 7 | Reserva feita (comprovante) | T08 | `/app/bookings/:id/confirmation` | Pronta | FR-004, RN06, RN09 |
+| 6 | Resumo da reserva | T07 | `/app/bookings/new` | Pronta | FR-004, FR-005, FR-025, FR-026, FR-027–FR-031, RN02–RN06, RN12, RN13, RN22, RN23, RN24, RN26 |
+| 6 | Escolher comodidades (painel) | T48 (nova, spec 002) | painel em T07 e T12 | Pronta | FR-028, FR-031, FR-035, RN22, RN25, RN26 |
+| 7 | Reserva feita (comprovante) | T08 | `/app/bookings/:id/confirmation` | Pronta | FR-004, FR-030, RN06, RN09, RN26 |
 | 8 | Minhas reservas | T11 | `/app/bookings` | Pronta | FR-006, FR-011, RN08, RN09 |
-| 9 | Detalhe da reserva com cancelamento | T12 + T18 | `/app/bookings/:id` | Pronta | FR-005, FR-007, RN06–RN09, RN11 |
+| 9 | Detalhe da reserva com cancelamento | T12 + T18 | `/app/bookings/:id` | Pronta | FR-005, FR-007, FR-029, FR-032–FR-034, RN06–RN09, RN11, RN26, RN27 |
 | 10 | Meu plano e solicitar plano (inclui Plano Social) | T28 + T29 | `/app/plan` | Pronta | FR-013, FR-022, RN13, RN19 |
 | 11 | Hubbi Verde: saldo e extrato | T46 (nova) | `/app/rewards` | Pronta | FR-025, RN22, RN23 |
 | 12 | Nosso impacto (página pública) | T47 (nova) | `/impact` | Pronta | FR-024, RN21 |
@@ -147,10 +148,11 @@ O MVP é construído por fluxo, uma tela por vez.
 | 4 | Planos e Plano Social | T28 + T29 | RN13, RN19 | Fechado |
 | 5 | Hubbi Verde | T46 | RN22, RN23 | Fechado |
 | 6 | Nosso impacto | T47 | RN21 | Fechado |
+| 7 | Comodidades na reserva ([spec 002](specs/002-comodidades-reserva/spec.md)) | T07, T48, T08, T12, T46 | RN22 ampliada, RN24–RN27 | Fechado (emenda MINOR do Princípio I pendente de aprovação) |
 
 As ações simuladas da recepção (seção 6.3) entram junto com o fluxo que as usa: registrar
 pagamento, concluir reserva, não comparecimento e expirar no fluxo 3; validar Plano Social no
-fluxo 4; confirmar chegada limpa no fluxo 5.
+fluxo 4; confirmar chegada limpa no fluxo 5; cozinha entrega item e recepção recebe as comodidades no fluxo 7.
 
 ## 6. Requisitos do MVP
 

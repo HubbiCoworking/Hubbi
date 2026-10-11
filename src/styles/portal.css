@@ -265,7 +265,8 @@
 .portal .inline-alert.block:focus { outline: 3px solid var(--err); outline-offset: 3px; }
 .portal .suggest-chips.light button { min-height: 44px; flex-direction: row; align-items: center; background: var(--white); border-color: #F2C9C9; }
 
-.portal .bn-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); grid-template-areas: "space receipt" "green receipt" "after receipt"; gap: 20px; align-items: start; }
+.portal .bn-grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(320px, 1fr); grid-template-areas: "space receipt" "green receipt" "extras receipt" "after receipt"; gap: 20px; align-items: start; }
+.portal .bn-extras { grid-area: extras; }
 .portal .bn-space { grid-area: space; }
 .portal .bn-green { grid-area: green; }
 .portal .bn-after { grid-area: after; }
@@ -322,7 +323,8 @@
 
 /* ===== Reserva feita (T08) ===== */
 /* Duas colunas no computador, alinhadas à esquerda como as outras telas (regra do CLAUDE.md). */
-.portal .confirmation { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); grid-template-areas: "top top" "details aside"; gap: 20px 24px; align-items: start; }
+.portal .confirmation { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(300px, 1fr); grid-template-areas: "top top" "details aside" "extras aside"; gap: 20px 24px; align-items: start; }
+.portal .conf-extras { grid-area: extras; min-width: 0; }
 .portal .conf-top { grid-area: top; display: flex; align-items: flex-start; gap: 20px; margin-bottom: 8px; }
 .portal .conf-title { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; min-width: 0; }
 .portal .conf-icon { flex: none; width: 64px; height: 64px; border-radius: 20px; display: grid; place-items: center; background: var(--ok-bg); color: var(--ok); }
@@ -336,7 +338,7 @@
 .portal .conf-details { grid-area: details; background: var(--white); border: 1px solid var(--line); border-radius: var(--r-card); padding: 24px; display: flex; flex-direction: column; gap: 16px; }
 .portal .conf-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
 .portal .conf-head h2 { font-size: 26px; font-weight: 900; letter-spacing: -.03em; }
-.portal .conf-aside { grid-area: aside; position: sticky; top: 16px; }
+.portal .conf-aside { grid-area: aside; position: sticky; top: 16px; align-self: start; grid-row: 2 / span 2; }
 .portal .conf-aside h2 { font-size: 18px; }
 .portal .conf-notes { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 12px; }
 .portal .conf-notes li { display: flex; gap: 10px; align-items: flex-start; font-size: 15px; color: var(--ink-soft); }
@@ -348,8 +350,8 @@
   .portal .conf-title, .portal .conf-details, .portal .conf-aside { animation: rise .55s var(--ease-out) .15s both; }
 }
 @media (max-width: 1023px) {
-  .portal .confirmation { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "details" "aside"; }
-  .portal .conf-aside { position: static; }
+  .portal .confirmation { grid-template-columns: minmax(0, 1fr); grid-template-areas: "top" "details" "extras" "aside"; }
+  .portal .conf-aside { position: static; grid-row: auto; }
 }
 @media (max-width: 560px) {
   .portal .conf-top { flex-direction: column; gap: 14px; }
@@ -596,7 +598,7 @@
   .portal .tab-count { min-width: 18px; height: 18px; padding: 0 4px; }
 }
 @media (max-width: 1023px) {
-  .portal .bn-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "space" "green" "receipt" "after"; }
+  .portal .bn-grid { grid-template-columns: minmax(0, 1fr); grid-template-areas: "space" "green" "extras" "receipt" "after"; }
   .portal .bn-receipt { position: static; }
 }
 @media (max-width: 1279px) {
@@ -667,3 +669,62 @@
 .portal .side-a11y { margin-top: auto; margin-bottom: -22px; width: 100%; min-height: 46px; font-size: 15px; }
 .portal .side-a11y ~ .side-user { margin-top: 0; }
 .portal .top-end { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ===== Comodidades (spec 002: T07, T48, T08, T12) ===== */
+.portal .xp-title { font-size: 20px; font-weight: 800; letter-spacing: -.02em; }
+.portal .xp-title .muted { font-family: var(--f-body); font-size: 14px; font-weight: 500; letter-spacing: 0; }
+.portal .qty { display: inline-flex; align-items: center; gap: 4px; border: 1.5px solid var(--field); border-radius: var(--r-ctl); padding: 3px; background: var(--white); }
+.portal .qty button { width: 44px; height: 44px; border-radius: 10px; border: 0; background: var(--paper); color: var(--ink); font-size: 20px; line-height: 1; cursor: pointer; }
+.portal .qty button:hover:not(:disabled) { background: var(--sky); color: var(--primary); }
+.portal .qty button:disabled { opacity: .4; cursor: not-allowed; }
+.portal .qty output { min-width: 32px; text-align: center; font-weight: 700; font-variant-numeric: tabular-nums; }
+.portal .xp-people { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+.portal .xp-suggest { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 16px; background: var(--sky); border-radius: 16px; padding: 12px 14px; font-size: 15px; }
+.portal .xp-suggest p { flex: 1 1 220px; }
+.portal .xp-suggest .btn { min-height: 44px; font-size: 15px; }
+.portal .xp-chosen { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.portal .xp-chosen li { display: flex; justify-content: space-between; gap: 12px; font-size: 15px; }
+.portal .xp-chosen small { color: var(--ink-soft); }
+.portal .xp-chosen b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.portal .xp-open { align-self: flex-start; }
+.portal .bn-extras-sum { display: flex; flex-direction: column; gap: 8px; border-top: 1px dashed var(--line); padding-top: 12px; }
+
+/* Painel T48 */
+.portal .dialog:has(.xp-list) { max-width: 640px; }
+.portal .xp-setup { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px; align-items: end; }
+.portal .xp-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.portal .xp-list > li { display: flex; justify-content: space-between; gap: 12px 16px; padding: 14px 0; border-top: 1px solid var(--line); }
+.portal .xp-list > li.on .xp-name { color: var(--primary); }
+.portal .xp-info { min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.portal .xp-name { font-weight: 700; }
+.portal .xp-desc { font-size: 14px; color: var(--ink-soft); }
+.portal .xp-price { font-size: 14px; color: var(--ink-soft); }
+.portal .xp-price b { color: var(--ink); font-variant-numeric: tabular-nums; }
+.portal .xp-diet { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 4px; }
+.portal .xp-diet li { font-size: 12px; font-weight: 600; color: var(--ok); background: var(--ok-bg); padding: 2px 8px; border-radius: var(--r-pill); }
+.portal .xp-ctrl { flex: none; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.portal .xp-points { display: flex; flex-direction: column; align-items: flex-end; gap: 4px; font-size: 13px; color: var(--ok); font-weight: 600; }
+.portal .xp-points .qty { border-color: var(--ok); }
+.portal .xp-limit { flex-basis: 100%; max-width: 240px; text-align: right; font-size: 12px; font-weight: 500; color: var(--ink-soft); }
+.portal .xp-foot { position: sticky; bottom: -28px; margin: 0 -28px -28px; padding: 14px 28px 28px; background: var(--white); border-top: 1px solid var(--line); box-shadow: 0 -10px 24px rgba(56, 38, 95, .06); display: flex; flex-direction: column; gap: 10px; }
+.portal .xp-foot .dialog-actions { margin-top: 0; }
+.portal .xp-total { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; }
+.portal .xp-total span { flex: 1; color: var(--ink-soft); }
+.portal .xp-total b { font-family: var(--f-display); font-size: 26px; font-weight: 900; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.portal .xp-total small { flex-basis: 100%; text-align: right; font-size: 13px; color: var(--ok); font-weight: 600; }
+
+/* Situação T08/T12 */
+.portal .xp-lines { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.portal .xp-lines li { display: flex; align-items: center; gap: 10px 12px; flex-wrap: wrap; padding: 10px 0; }
+.portal .xp-lines li + li { border-top: 1px solid var(--line); }
+.portal .xp-lines li > div { flex: 1 1 160px; min-width: 0; }
+.portal .xp-lines li.off .xp-name { text-decoration: line-through; color: var(--ink-soft); }
+.portal .xp-cancel { min-height: 44px; padding: 0 16px; font-size: 14px; }
+@media (max-width: 560px) {
+  .portal .xp-list > li { flex-direction: column; }
+  .portal .xp-ctrl { flex-direction: row; flex-wrap: wrap; justify-content: space-between; align-items: center; }
+  .portal .xp-points { flex-direction: row; align-items: center; gap: 8px; }
+  .portal .xp-setup { grid-template-columns: minmax(0, 1fr); }
+  .portal .dialog:has(.xp-list) { max-height: calc(100dvh - 24px); }
+  .portal .xp-foot { bottom: -22px; margin: 0 -22px -22px; padding: 12px 22px 22px; }
+}

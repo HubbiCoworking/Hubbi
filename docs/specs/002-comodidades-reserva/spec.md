@@ -4,7 +4,7 @@
 
 **Created**: 2026-10-11
 
-**Status**: Draft
+**Status**: Implementada no protótipo (2026-10-11)
 
 **Input**: User description: "O cliente diz para que vai usar o espaço e, conforme a finalidade
 (ex.: reunião), o Hubbi oferece café, snacks e o que ele escolher, como comodidade durante o uso."

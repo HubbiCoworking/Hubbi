@@ -24,7 +24,7 @@ npm run build   # checa tipos (TS estrito) e gera dist/; precisa passar antes de
 npm run dev     # http://localhost:5173 (no app: preview "hubbi-web" em docs/.claude/launch.json)
 ```
 
-Dados do protótipo ficam no `localStorage`, chave `hubbi:v2`, formato na versão 4 (`VERSION` em
+Dados do protótipo ficam no `localStorage`, chave `hubbi:v2`, formato na versão 5 (`VERSION` em
 `src/store/store.ts`). Ao mudar
 o formato, subir `VERSION` e escrever a migração em `load()`, sem apagar contas já criadas.
 
