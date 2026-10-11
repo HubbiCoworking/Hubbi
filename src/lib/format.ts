@@ -11,3 +11,8 @@ export function formatDuration(hours: number): string {
   const m = Math.round((hours - h) * 60);
   return `${h} h${m ? ` ${m} min` : ''}`;
 }
+
+/** "Falta" ou "Faltam" conforme a quantidade: "Falta 1 ponto", "Faltam 3 pontos". */
+export const falta = (n: number): string => (n === 1 ? 'Falta' : 'Faltam');
+/** O mesmo para um tempo já formatado: "Falta 1 dia", "Faltam 2 dias", "Faltam 1 dia e 3 h". */
+export const faltaTempo = (left: string): string => (/^1 (dia|h|min)$/.test(left) ? 'Falta' : 'Faltam');

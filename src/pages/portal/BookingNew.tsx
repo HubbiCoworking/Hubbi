@@ -10,7 +10,7 @@ import { pointsBalance } from '../../domain/points';
 import { priceBooking } from '../../domain/pricing';
 import type { ArrivalMode, Booking } from '../../domain/types';
 import { daysBetween, hhmm, longDay, shortDay } from '../../lib/dates';
-import { brl, formatDuration, round2 } from '../../lib/format';
+import { brl, falta, formatDuration, round2 } from '../../lib/format';
 import { useReducedMotion, useReplayClass } from '../../lib/motion';
 import { useDocumentTitle } from '../../lib/useDocumentTitle';
 import { activeSubscription, createBooking, pointsOf, sessionClient, spaceById, useDB } from '../../store/store';
@@ -206,7 +206,7 @@ export default function BookingNew() {
                 <b>Usar {GREEN_POINTS.redeemCost} pontos verdes</b>
                 <small>{canRedeem
                   ? `${GREEN_POINTS.redeemDiscount}% de desconto nesta reserva. Você tem ${balance} pontos.`
-                  : `Você tem ${balance} pontos. Faltam ${GREEN_POINTS.redeemCost - balance} para trocar por desconto.`}</small>
+                  : `Você tem ${balance} pontos. ${falta(GREEN_POINTS.redeemCost - balance)} ${GREEN_POINTS.redeemCost - balance} para trocar por desconto.`}</small>
               </span>
               <input type="checkbox" role="switch" id="use-points" checked={usePoints && canRedeem} disabled={!canRedeem} onChange={(e) => setUsePoints(e.target.checked)} />
             </label>

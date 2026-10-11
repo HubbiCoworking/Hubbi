@@ -9,7 +9,7 @@ import { bookingHours, isActive, paymentDeadline, STATE_LABEL } from '../../doma
 import { cancellationQuote, formatTimeLeft, type CancelQuote } from '../../domain/cancellation';
 import type { ArrivalMode, Booking, BookingHistory } from '../../domain/types';
 import { daysBetween, ddmmyyyy, hhmm, longDay, shortDay } from '../../lib/dates';
-import { brl, formatDuration, round2 } from '../../lib/format';
+import { brl, faltaTempo, formatDuration, round2 } from '../../lib/format';
 import { useDocumentTitle } from '../../lib/useDocumentTitle';
 import {
   cancelBooking, completeBooking, expireBooking, historyOf, markNoShow, registerPayment, resetDemoData,
@@ -243,7 +243,7 @@ export default function BookingDetail() {
               <h2 id="dt-actions-t">Ações</h2>
               {canCancel ? (
                 <>
-                  <p className="muted small">{quote.band === 'unpaid' ? 'Sem pagamento registrado: cancelar não gera multa.' : quote.feePct === 0 ? `Faltam ${formatTimeLeft(quote.msLeft)}: cancelar agora não gera multa.` : `Faltam ${formatTimeLeft(quote.msLeft)}: cancelar agora gera multa de ${quote.feePct}%.`}</p>
+                  <p className="muted small">{quote.band === 'unpaid' ? 'Sem pagamento registrado: cancelar não gera multa.' : quote.feePct === 0 ? `${faltaTempo(formatTimeLeft(quote.msLeft))} ${formatTimeLeft(quote.msLeft)}: cancelar agora não gera multa.` : `${faltaTempo(formatTimeLeft(quote.msLeft))} ${formatTimeLeft(quote.msLeft)}: cancelar agora gera multa de ${quote.feePct}%.`}</p>
                   <button ref={cancelBtnRef} type="button" className="btn btn-danger-soft btn-block" onClick={() => setDialogOpen(true)}>Cancelar reserva</button>
                 </>
               ) : (
@@ -304,9 +304,9 @@ function CancelDialog({ booking, spaceName, quote, onClose, onConfirm }: {
   const left = formatTimeLeft(quote.msLeft);
   const lead = {
     unpaid: 'Esta reserva ainda não foi paga. Cancelar não gera multa nem estorno.',
-    free: `Faltam ${left} para o início. Cancelamento sem multa.`,
-    half: `Faltam ${left} para o início. Multa de 50% do valor da reserva.`,
-    full: `Faltam ${left} para o início. Multa de 100% do valor da reserva.`,
+    free: `${faltaTempo(left)} ${left} para o início. Cancelamento sem multa.`,
+    half: `${faltaTempo(left)} ${left} para o início. Multa de 50% do valor da reserva.`,
+    full: `${faltaTempo(left)} ${left} para o início. Multa de 100% do valor da reserva.`,
   }[quote.band];
 
   return (

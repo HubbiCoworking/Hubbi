@@ -6,6 +6,7 @@ import { GREEN_POINTS } from '../../data/catalog';
 import { currentStreak, pointsBalance, POINTS_VALID_MONTHS, redeemProgress } from '../../domain/points';
 import type { ArrivalMode, PointsEntry } from '../../domain/types';
 import { ddmmyyyy, shortDay } from '../../lib/dates';
+import { falta } from '../../lib/format';
 import { useDocumentTitle } from '../../lib/useDocumentTitle';
 import { bookingsOf, confirmArrival, pointsOf, resetDemoData, sessionClient, spaceById, useDB } from '../../store/store';
 
@@ -88,7 +89,7 @@ export default function Rewards() {
               <p className="rw-hint">
                 {canRedeem
                   ? `Você já pode trocar ${cost} pontos por ${GREEN_POINTS.redeemDiscount}% de desconto em uma reserva.`
-                  : balance === 0 ? 'Conclua sua primeira reserva para ganhar 10 pontos.' : `Faltam ${missing} pontos para ${GREEN_POINTS.redeemDiscount}% de desconto em uma reserva.`}
+                  : balance === 0 ? 'Conclua sua primeira reserva para ganhar 10 pontos.' : `${falta(missing)} ${missing} ${missing === 1 ? 'ponto' : 'pontos'} para ${GREEN_POINTS.redeemDiscount}% de desconto em uma reserva.`}
               </p>
               <div className="rw-foot">
                 <dl className="rw-stats">
@@ -112,7 +113,7 @@ export default function Rewards() {
               <p className="muted">
                 {streak === 0
                   ? 'Conclua reservas seguidas, sem faltar, para ganhar o bônus.'
-                  : `${streak} de ${STREAK_SIZE}. Faltam ${STREAK_SIZE - streak} reservas concluídas para o bônus. Faltar ou cancelar com multa recomeça a contagem.`}
+                  : `${streak} de ${STREAK_SIZE}. ${falta(STREAK_SIZE - streak)} ${STREAK_SIZE - streak} ${STREAK_SIZE - streak === 1 ? 'reserva concluída' : 'reservas concluídas'} para o bônus. Faltar ou cancelar com multa recomeça a contagem.`}
               </p>
             </section>
 

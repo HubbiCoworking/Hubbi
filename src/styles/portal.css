@@ -436,13 +436,14 @@
 .portal .dialog-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; margin-top: 6px; }
 
 /* Aviso rápido (toast) */
-.portal .toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 55; width: min(560px, calc(100vw - 24px)); display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 16px; border-radius: 16px; font-size: 15px; box-shadow: var(--shadow-2); }
+/* Centralizado por left/right + margin: o transform fica livre para a animação de entrada. */
+.portal .toast { position: fixed; left: 12px; right: 12px; margin-inline: auto; bottom: calc(80px + env(safe-area-inset-bottom, 0px)); z-index: 55; max-width: 560px; display: flex; align-items: center; gap: 10px; padding: 12px 12px 12px 16px; border-radius: 16px; font-size: 15px; box-shadow: var(--shadow-2); }
 .portal .toast--ok { background: var(--ink); color: #F7F6FC; }
 .portal .toast--ok > svg { color: #7FD3A1; }
 .portal .toast--err { background: var(--err-bg); color: #6E1A1A; border: 1px solid #F2C9C9; }
 .portal .toast > svg { width: 20px; height: 20px; flex: none; }
 .portal .toast span { flex: 1; }
-.portal .toast button { flex: none; width: 36px; height: 36px; border: 0; border-radius: 10px; background: none; color: inherit; cursor: pointer; display: grid; place-items: center; }
+.portal .toast button { flex: none; width: 44px; height: 44px; border: 0; border-radius: 10px; background: none; color: inherit; cursor: pointer; display: grid; place-items: center; }
 .portal .toast button svg { width: 16px; height: 16px; }
 @media (prefers-reduced-motion: no-preference) {
   .portal .dialog { animation: rise .3s var(--ease-out) both; }
@@ -576,7 +577,7 @@
 @media (max-width: 560px) {
   .portal .dialog { padding: 22px; border-radius: 24px; }
   .portal .dialog-actions .btn { flex: 1; }
-  .portal .dialog-backdrop { align-items: end; }
+  .portal .dialog-backdrop { align-items: end; padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
 }
 @media (max-width: 720px) {
   .portal .bk-item { grid-template-columns: auto minmax(0, 1fr); gap: 14px; padding: 16px; }

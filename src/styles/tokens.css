@@ -173,3 +173,8 @@ html[data-contrast="high"] :focus-visible { outline-width: 4px; }
 /* Reduzir animações pela página (além do pedido do sistema, tratado acima) */
 html[data-motion="reduce"] { scroll-behavior: auto; }
 html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { transition: none !important; animation: none !important; }
+
+/* VLibras: o widget usa z-index máximo e cobria diálogos e menus. O elemento que o envolve vira
+   um contexto de empilhamento logo acima do conteúdo e abaixo da barra superior (20), do menu,
+   do painel "Mais", dos avisos e dos diálogos. */
+#vlibras-access-wrapper { position: relative; z-index: 19; }

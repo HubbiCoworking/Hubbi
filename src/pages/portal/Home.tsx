@@ -9,7 +9,7 @@ import { pointsBalance, redeemProgress } from '../../domain/points';
 import { priceBooking } from '../../domain/pricing';
 import type { Booking, PointsEntry, Subscription } from '../../domain/types';
 import { atBusinessDay, daysBetween, ddmmyyyy, hhmm, longDay, relativeDay, shortDay } from '../../lib/dates';
-import { brl } from '../../lib/format';
+import { brl, falta } from '../../lib/format';
 import { cssVars } from '../../lib/style';
 import { useDocumentTitle } from '../../lib/useDocumentTitle';
 import {
@@ -251,7 +251,7 @@ function PointsCard({ balance }: { balance: number }) {
           ? 'Conclua sua primeira reserva para ganhar 10 pontos.'
           : canRedeem
             ? 'Você já pode trocar 100 pontos por 10% de desconto na próxima reserva.'
-            : `Faltam ${missing} pontos para 10% de desconto numa reserva.`}
+            : `${falta(missing)} ${missing} ${missing === 1 ? 'ponto' : 'pontos'} para 10% de desconto numa reserva.`}
       </p>
       <Link className="link-row" to="/app/rewards">Ver extrato <ChevronRight /></Link>
     </section>
