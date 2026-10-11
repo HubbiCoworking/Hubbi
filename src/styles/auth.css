@@ -1,0 +1,200 @@
+/* Telas de acesso (login e cadastro). Todas as regras ficam sob .auth-page.
+   Layout: formulário à esquerda, sem cartão; painel Roxo Hubbi à direita com a prévia do que a
+   pessoa ganha ao entrar. No celular, só o formulário. */
+.auth-page h1, .auth-page h2, .auth-page h3{font-family:var(--f-display);margin:0;text-wrap:balance;color:var(--ink)}
+.auth-page p{margin:0}
+.auth-page a{font-weight:600;text-underline-offset:3px}
+.auth-page .page{min-height:100vh;max-width:1760px;margin-inline:auto;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:16px;padding-block:16px}
+.auth-page .auth{display:flex;flex-direction:column;padding:8px clamp(8px,4vw,56px)}
+.auth-page .top{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:56px}
+.auth-page .logo{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--plum)}
+.auth-page .logo svg{width:34px;height:34px;color:var(--plum);--mark-table:var(--peri);transition:transform .7s var(--ease-spring)}
+.auth-page .logo:hover svg{transform:rotate(120deg)}
+.auth-page .logo span{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.03em}
+.auth-page .back{display:inline-flex;align-items:center;gap:6px;font-size:15px;color:var(--ink-soft);text-decoration:none;font-weight:500;padding:10px 14px;border-radius:var(--r-pill)}
+.auth-page .back:hover{background:var(--paper);color:var(--ink)}
+.auth-page .back svg{width:16px;height:16px}
+.auth-page .stage{flex:1;display:flex;justify-content:center;padding-block:40px 32px}
+.auth-page .stage--center{align-items:center}
+.auth-page .view{width:100%;max-width:480px;display:flex;flex-direction:column;gap:24px}
+.auth-page .view--wide{max-width:520px}
+.auth-page .view h1{font-size:clamp(34px,3.4vw,58px);font-weight:900;letter-spacing:-.045em;line-height:1.05}
+.auth-page .view .sub{color:var(--ink-soft);font-size:17px}
+.auth-page .have{font-size:15px;color:var(--ink-soft)}
+.auth-page form{display:flex;flex-direction:column;gap:18px}
+.auth-page form.form--sections{gap:28px}
+.auth-page fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:18px;min-width:0}
+.auth-page legend{font-family:var(--f-display);font-weight:800;font-size:19px;letter-spacing:-.02em;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+.auth-page legend .step{width:28px;height:28px;border-radius:50%;background:var(--sky);color:var(--primary);display:inline-grid;place-items:center;font-size:14px;font-family:var(--f-body);font-weight:600}
+.auth-page .field{display:flex;flex-direction:column;gap:8px}
+.auth-page .field-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+.auth-page label{font-weight:600;font-size:15px}
+.auth-page .help{font-size:14px;color:var(--ink-soft)}
+.auth-page .link-btn{background:none;border:0;padding:4px 2px;font:600 14px var(--f-body);color:var(--primary);cursor:pointer;text-decoration:underline;text-underline-offset:3px;border-radius:6px}
+.auth-page .control{position:relative}
+.auth-page input[type=email], .auth-page input[type=password], .auth-page input[type=text], .auth-page input[type=tel]{width:100%;min-height:54px;border:1.5px solid var(--field);border-radius:var(--r-ctl);padding:0 16px;font:400 16px var(--f-body);color:var(--ink);background:var(--white);transition:border-color .15s, box-shadow .15s}
+.auth-page input::placeholder{color:#8C88A3}
+.auth-page input:hover{border-color:var(--ink-soft)}
+.auth-page input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(74,86,200,.18)}
+.auth-page input[aria-invalid=true]{border-color:var(--err);box-shadow:0 0 0 4px rgba(161,38,38,.10)}
+.auth-page input[readonly]{background:var(--paper);color:var(--ink-soft)}
+.auth-page .has-toggle input{padding-right:60px}
+.auth-page .toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:10px;background:none;color:var(--ink-soft);cursor:pointer;display:grid;place-items:center}
+.auth-page .toggle:hover{background:var(--paper);color:var(--ink)}
+.auth-page .toggle svg{width:22px;height:22px}
+.auth-page .hint, .auth-page .error{font-size:14px;display:flex;gap:6px;align-items:flex-start}
+.auth-page .hint{color:var(--warn)}
+.auth-page .error{color:var(--err);font-weight:500}
+.auth-page .hint svg, .auth-page .error svg{width:16px;height:16px;flex:none;margin-top:2px}
+.auth-page .rules{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.auth-page .rules li{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);padding:5px 10px 5px 8px;border-radius:var(--r-pill);transition:background .2s, color .2s, border-color .2s}
+.auth-page .rules li svg{width:14px;height:14px}
+.auth-page .rules li.met{background:var(--ok-bg);border-color:var(--ok-bg);color:var(--ok);font-weight:600}
+.auth-page .check{display:flex;gap:12px;align-items:flex-start;font-weight:400;font-size:15px;color:var(--ink-soft);cursor:pointer}
+.auth-page .check input{appearance:none;flex:none;width:24px;height:24px;border:1.5px solid var(--field);border-radius:7px;margin:0;display:grid;place-items:center;cursor:pointer;background:var(--white)}
+.auth-page .check input:checked{background:var(--primary);border-color:var(--primary)}
+.auth-page .check input:checked::after{content:"";width:12px;height:7px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:translateY(-2px) rotate(-45deg)}
+.auth-page .check input:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.auth-page .check input[aria-invalid=true]{border-color:var(--err)}
+.auth-page .alert{display:flex;gap:12px;align-items:flex-start;border-radius:16px;padding:16px;font-size:15px;background:var(--err-bg);color:#6E1A1A}
+.auth-page .alert svg{width:20px;height:20px;flex:none;margin-top:1px;color:var(--err)}
+.auth-page .alert b{display:block;color:var(--err)}
+.auth-page .alert ul{margin:6px 0 0;padding-left:18px}
+.auth-page .alert ul a{color:var(--err)}
+.auth-page .alert .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.auth-page .alert .actions a{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:var(--r-pill);font-size:14px;text-decoration:none}
+.auth-page .alert .actions .solid{background:var(--err);color:#fff}
+.auth-page .alert .actions .line{box-shadow:inset 0 0 0 1.5px var(--err);color:var(--err)}
+.auth-page .alert:focus{outline:3px solid var(--err);outline-offset:3px}
+.auth-page .btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 28px;border-radius:var(--r-pill);font:600 17px var(--f-body);text-decoration:none;border:0;cursor:pointer;transition:background .15s, transform .15s}
+.auth-page .btn-primary{background:var(--primary);color:var(--white);width:100%}
+.auth-page .btn-primary:hover{background:var(--primary-press)}
+.auth-page .btn-primary:active{transform:translateY(1px)}
+.auth-page .btn-primary[aria-busy=true]{cursor:progress;background:var(--primary-press)}
+.auth-page .btn-soft{background:var(--white);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line);width:100%}
+.auth-page .btn-soft:hover{box-shadow:inset 0 0 0 1.5px var(--primary)}
+.auth-page .btn svg{width:18px;height:18px;transition:transform .2s var(--ease-out)}
+.auth-page .btn:hover svg.arrow{transform:translateX(4px)}
+.auth-page .spinner{width:20px;height:20px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .8s linear infinite}
+.auth-page .free-note{text-align:center;font-size:14px;color:var(--ink-soft);margin-top:-14px}
+.auth-page .free-note b{color:var(--ink);font-weight:600}
+.auth-page .divider{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px}
+.auth-page .divider::before, .auth-page .divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.auth-page .signup{text-align:center;color:var(--ink-soft);font-size:15px}
+.auth-page .team-note{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink-soft);background:var(--paper);border-radius:14px;padding:12px 14px}
+.auth-page .team-note svg{width:18px;height:18px;flex:none;color:var(--lilac-deep);margin-top:2px}
+.auth-page .badge-proto{align-self:flex-start;font-size:12px;font-weight:600;color:var(--lilac-deep);background:var(--lilac);padding:4px 10px;border-radius:var(--r-pill)}
+.auth-page .done-icon{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:var(--ok-bg);color:var(--ok)}
+.auth-page .done-icon.mail{background:var(--sky);color:var(--primary)}
+.auth-page .done-icon svg{width:32px;height:32px}
+.auth-page .mail-box{font-weight:600;color:var(--ink);word-break:break-all}
+.auth-page .resend{font-size:14px;color:var(--ink-soft);text-align:center}
+.auth-page .legal{font-size:13px;color:var(--ink-soft);text-align:center;padding-bottom:8px}
+.auth-page .kind{background:var(--paper);border-radius:20px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.auth-page .kind span{font-size:13px;font-weight:600;color:var(--lilac-deep)}
+.auth-page .kind p{color:var(--ink-soft);font-size:15px}
+.auth-page .kind p b{color:var(--ink)}
+.auth-page .done-actions{display:flex;flex-direction:column;gap:10px}
+.auth-page .aside{border-radius:36px;background:var(--plum);position:relative;overflow:hidden;overflow:clip;display:flex;flex-direction:column;padding:clamp(32px,4vw,56px);color:#F1EEFA}
+.auth-page .aside--stack{gap:32px;align-self:start;position:sticky;top:16px;min-height:calc(100vh - 32px)}
+.auth-page .aside::before{content:"";position:absolute;width:70%;aspect-ratio:1;right:-18%;top:-14%;border-radius:50%;background:radial-gradient(circle,rgba(145,163,220,.28),rgba(145,163,220,0) 65%);pointer-events:none}
+.auth-page .aside::after{content:"";position:absolute;width:60%;aspect-ratio:1;left:-20%;bottom:-25%;border-radius:50%;background:radial-gradient(circle,rgba(227,217,246,.16),rgba(227,217,246,0) 65%);pointer-events:none}
+.auth-page .aside > *{position:relative}
+.auth-page .aside h2{color:#F7F6FC;font-size:clamp(30px,3.4vw,46px);font-weight:900;letter-spacing:-.045em;line-height:1.05;max-width:13ch}
+.auth-page .aside h2 span{display:block;color:var(--peri)}
+.auth-page .aside .sub{color:#D7D1EA;font-size:17px;max-width:32ch;margin-top:16px}
+.auth-page .big-mark{position:absolute !important;right:clamp(24px,4vw,56px);top:clamp(24px,4vw,56px);width:clamp(64px,8vw,104px);height:clamp(64px,8vw,104px);color:#F7F6FC;--mark-table:var(--peri)}
+.auth-page .state{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ok);background:var(--ok-bg);padding:4px 10px;border-radius:var(--r-pill)}
+.auth-page .state svg{width:13px;height:13px}
+.auth-page .next{background:#F7F6FC;color:var(--ink);border-radius:22px;padding:20px 22px;display:flex;flex-direction:column;gap:14px;margin-top:auto}
+.auth-page .next-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.auth-page .next-top p{font-size:13px;color:var(--ink-soft)}
+.auth-page .next h3{font-size:22px;font-weight:900;letter-spacing:-.025em}
+.auth-page .next-points{display:flex;align-items:center;gap:14px;border-top:1px dashed #CFC9E3;padding-top:14px}
+.auth-page .next-points b{font-family:var(--f-display);font-size:26px;font-weight:900;color:var(--ok);letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums}
+.auth-page .next-points div{flex:1;display:flex;flex-direction:column;gap:6px;font-size:13px;color:var(--ink-soft)}
+.auth-page .next-bar{height:8px;border-radius:var(--r-pill);background:var(--lilac);overflow:hidden}
+.auth-page .next-bar i{display:block;height:100%;border-radius:inherit;background:var(--ok)}
+.auth-page .res-meta{display:flex;flex-wrap:wrap;gap:8px}
+.auth-page .res-meta span{display:inline-flex;align-items:center;gap:6px;font-size:14px;background:var(--white);border:1px solid var(--line);padding:6px 12px;border-radius:12px}
+.auth-page .res-meta svg{width:15px;height:15px;color:var(--primary)}
+.auth-page .hand-note{font-family:var(--f-hand);font-size:24px;color:#E3D9F6;transform:rotate(-4deg);align-self:flex-end;margin-bottom:-18px;margin-right:8px}
+.auth-page .perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.auth-page .perks li{display:flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:14px 16px}
+.auth-page .perks .ic{flex:none;width:36px;height:36px;border-radius:11px;background:var(--peri);color:var(--plum);display:grid;place-items:center}
+.auth-page .perks .ic svg{width:18px;height:18px}
+.auth-page .perks b{display:block;color:#F7F6FC;font-weight:600}
+.auth-page .perks span{font-size:14px;color:#D7D1EA}
+.auth-page .why{background:#F7F6FC;color:var(--ink);border-radius:22px;padding:20px 22px;display:flex;flex-direction:column;gap:10px;margin-top:auto}
+.auth-page .why h3{font-size:18px;font-weight:800;letter-spacing:-.02em}
+.auth-page .why dl{margin:0;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.auth-page .why dt{font-weight:600;display:inline}
+.auth-page .why dd{margin:0;display:inline;color:var(--ink-soft)}
+.auth-page .why .lgpd{font-size:13px;color:var(--lilac-deep);font-weight:600}
+@media (prefers-reduced-motion:no-preference){
+.auth-page .top .logo svg{animation:spin-once 1s var(--ease-spring) .2s both}
+.auth-page .view.enter > *{animation:rise .6s var(--ease-out) both;animation-delay:calc(var(--i,0) * 70ms + 60ms)}
+.auth-page .view.swap{animation:fade-in .35s var(--ease-out) both}
+.auth-page .aside{animation:rise-big .9s var(--ease-out) .1s both}
+.auth-page .big-mark{animation:spin-once 1.2s var(--ease-spring) .6s both}
+.auth-page .perks li{animation:rise .6s var(--ease-out) both}
+.auth-page .perks li:nth-child(1){animation-delay:.5s}
+.auth-page .perks li:nth-child(2){animation-delay:.6s}
+.auth-page .perks li:nth-child(3){animation-delay:.7s}
+.auth-page .perks li:nth-child(4){animation-delay:.8s}
+.auth-page .why, .auth-page .next{animation:rise .7s var(--ease-out) .95s both}
+.auth-page .hand-note{animation:fade .6s var(--ease-out) 1.3s both}
+.auth-page .rules li.met svg{animation:pop-in .3s var(--ease-spring)}
+.auth-page .done-icon{animation:pop-in .5s var(--ease-spring) .1s both}
+.auth-page .shake{animation:shake .4s var(--ease-out)}
+.auth-page .alert{animation:fade-in .3s var(--ease-out) both}
+}
+@media (max-width:960px){
+.auth-page .page{grid-template-columns:1fr}
+.auth-page .aside{display:none}
+.auth-page .auth{padding-inline:0}
+.auth-page .stage{align-items:flex-start;padding-top:24px;padding-bottom:96px}
+}
+@media (max-width:420px){
+.auth-page .back span{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.auth-page .back{width:44px;height:44px;justify-content:center;padding:0}
+.auth-page .back svg{width:20px;height:20px}
+}
+
+/* Escala do formulário por tamanho de tela.
+   Até 960 px: uma coluna, formulário até 560 px. Acima: duas colunas, e o formulário cresce
+   com a tela para não parecer a versão de celular esticada. */
+@media (min-width:600px) and (max-width:960px){
+.auth-page .view, .auth-page .view--wide{max-width:560px}
+.auth-page .stage{padding-top:48px}
+}
+@media (min-width:961px) and (max-width:1279px){
+.auth-page .page{grid-template-columns:minmax(0,1.45fr) minmax(0,1fr)}
+.auth-page .auth{padding-inline:24px}
+.auth-page .view, .auth-page .view--wide{max-width:520px}
+.auth-page .aside{padding:32px}
+.auth-page .aside h2{font-size:32px}
+.auth-page .perks li{padding:12px 14px}
+}
+@media (min-width:1280px){
+.auth-page .view{max-width:540px;gap:28px}
+.auth-page .view--wide{max-width:580px}
+.auth-page .view .sub{font-size:18px}
+.auth-page form{gap:22px}
+.auth-page form.form--sections{gap:32px}
+.auth-page label{font-size:16px}
+.auth-page input[type=email], .auth-page input[type=password], .auth-page input[type=text], .auth-page input[type=tel]{min-height:58px;font-size:17px;padding-inline:18px}
+.auth-page .btn{min-height:58px;font-size:18px}
+.auth-page .auth{padding-inline:clamp(32px,4vw,72px)}
+}
+@media (min-width:1600px){
+.auth-page .view{max-width:600px}
+.auth-page .view--wide{max-width:640px}
+.auth-page .aside h2{font-size:clamp(46px,3vw,56px)}
+}
+
+
+/* Entrada com a conta de exemplo (protótipo) */
+.auth-page .demo-entry{display:flex;flex-direction:column;gap:8px;border:1.5px dashed var(--lilac);border-radius:18px;padding:14px}
+.auth-page .demo-entry p{font-size:13px;color:var(--ink-soft);text-align:center}
+.auth-page .top-end{display:inline-flex;align-items:center;gap:4px}

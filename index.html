@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="description" content="Reserve salas, mesas e estações de trabalho pelo que a sua equipe precisa, com o preço final antes de confirmar." />
+    <meta name="theme-color" content="#38265F" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap" />
+    <title>Hubbi</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <!-- VLibras (governo federal): traduz o texto da página para Libras. Fica fora do React. -->
+    <div vw class="enabled">
+      <div vw-access-button class="active"></div>
+      <div vw-plugin-wrapper>
+        <div class="vw-plugin-top-wrapper"></div>
+      </div>
+    </div>
+    <script src="https://vlibras.gov.br/app/vlibras-plugin.js" defer onload="new window.VLibras.Widget('https://vlibras.gov.br/app')"></script>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

@@ -64,9 +64,9 @@ flowchart TD
     C --> D{Há espaços livres?}
     D -- Não --> D1[/Nenhum espaço livre: sugere outros horários/] --> B
     D -- Sim --> E[Calcula preço por espaço]
-    E --> F{Cliente tem plano ativo?}
+    E --> F{Cliente tem plano ativo e nenhuma cobrança vencida? RN13}
     F -- Sim --> G[/Mostra preço cheio riscado e preço com desconto do plano/]
-    F -- Não --> H[/Mostra preço cheio/]
+    F -- Não --> H[/Mostra preço cheio. Se há cobrança vencida, avisa que o desconto está suspenso/]
     G --> I([Seleciona espaço e segue para F03])
     H --> I
 ```
@@ -77,15 +77,19 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    A([Espaço e período escolhidos]) --> B{Espaço ativo?}
-    B -- Não --> X1[/Espaço indisponível/] --> Z([Volta para F02])
+    A([Espaço e período escolhidos]) --> A1{Quem reserva?}
+    A1 -- Cliente no portal --> A2{Início com 1h ou mais de antecedência? RN12}
+    A2 -- Não --> X0[/Antecedência mínima de 1h: escolha outro horário/] --> Z([Volta para F02])
+    A2 -- Sim --> B
+    A1 -- Recepção --> B{Espaço ativo?}
+    B -- Não --> X1[/Espaço indisponível/] --> Z
     B -- Sim --> C{Dentro do horário de funcionamento, no mesmo dia?}
     C -- Não --> X2[/Fora do horário: mostra horário do dia/] --> Z
     C -- Sim --> D{Duração entre mínimo e máximo e múltipla do passo?}
     D -- Não --> X3[/Duração inválida: mostra limites/] --> Z
     D -- Sim --> E{Algum conflito com reserva pendente ou confirmada?}
     E -- Sim --> X4[/Horário ocupado: sugere horários livres/] --> Z
-    E -- Não --> F[Calcula preço: hora x duração x 1 menos desconto]
+    E -- Não --> F[Calcula preço: hora x duração x 1 menos desconto. Desconto 0% para avulso ou cobrança vencida]
     F --> G[/Resumo da reserva com valor final/]
     G --> H{Cliente confirma?}
     H -- Não --> Z1([Cancela o fluxo, nada é gravado])
@@ -93,10 +97,13 @@ flowchart TD
     I --> J{Ainda livre?}
     J -- Não --> X4
     J -- Sim --> K[Grava reserva com valor cheio, desconto, plano e valor final]
-    K --> L{Cliente tem plano ativo?}
+    K --> L{Cliente tem plano ativo e nenhuma cobrança vencida? RN13}
     L -- Sim --> M[Estado Confirmada + cobrança pendente]
-    L -- Não --> N[Estado Pendente, prazo de pagamento começa]
+    L -- Não --> L1{Recepção reservando com menos de 1h e registrando pagamento integral no ato?}
+    L1 -- Sim --> M1[Estado Confirmada, pagamento Realizado]
+    L1 -- Não --> N[Estado Pendente, prazo de pagamento começa]
     M --> O[Registra histórico + notificação]
+    M1 --> O
     N --> O
     O --> P([Comprovante de reserva exibido])
 ```
@@ -137,18 +144,21 @@ flowchart TD
     E -- "24h ou mais" --> F[Multa 0%]
     E -- "entre 24h e 2h" --> G[Multa 50% do valor]
     E -- "menos de 2h" --> H[Multa 100% do valor]
-    F --> I[Estorno = valor pago menos multa]
+    F --> I[Estorno = valor pago menos multa, mínimo 0]
     G --> I
     H --> I
-    D --> J[/Tela mostra multa e estorno antes de confirmar/]
+    D --> J[/Tela mostra multa, valor retido e estorno antes de confirmar/]
     I --> J
     J --> K{Confirma o cancelamento?}
     K -- Não --> Z
-    K -- Sim --> L[Estado Cancelada, horário liberado, histórico gravado]
-    L --> M{Existe estorno a devolver?}
-    M -- Sim --> N[Gera estorno pendente para a equipe registrar como Estornado]
-    M -- Não --> O[Sem movimentação financeira]
-    N --> P[/Notificação com multa e estorno/]
+    K -- Sim --> L[Estado Cancelada, horário liberado, histórico gravado. Cobrança original cancelada]
+    L --> M{Multa maior que o valor já pago?}
+    M -- Sim, inclui reserva de membro sem pagamento --> M1[Valor pago retido como multa e saldo vira cobrança de multa Pendente, estorno 0]
+    M -- Não --> M2{Sobra valor pago a devolver?}
+    M2 -- Sim --> N[Gera estorno pendente para a equipe registrar como Estornado]
+    M2 -- Não --> O[Sem movimentação financeira]
+    M1 --> P[/Notificação com multa e estorno/]
+    N --> P
     O --> P
     P --> Z
 ```
@@ -216,16 +226,17 @@ flowchart TD
     A([Administrador abre Planos]) --> B[/Cadastrar ou editar plano: nome, desconto %, validade, preço/]
     B --> C[Plano salvo, vale apenas para novas reservas]
 
-    D([Cliente ou recepção escolhe Contratar plano]) --> E{Cliente já tem plano ativo?}
-    E -- Sim --> E1[/Apenas um plano ativo: trocar ou encerrar o atual/] --> F
-    E -- Não --> F[Cria assinatura e cobrança do plano, Pendente]
-    F --> G[Recepção registra pagamento em F04]
-    G --> H[Assinatura Ativa: descontos valem nas novas reservas]
+    D([Cliente solicita no portal ou recepção registra Contratar plano]) --> E{Cliente já tem plano ativo?}
+    E -- Sim --> E1[/Apenas um plano ativo: solicitar troca ou cancelamento do atual/] --> F
+    E -- Não --> F[Cria assinatura e cobrança do plano pelo preço fixo, Pendente]
+    F --> G[Recepção registra pagamento em F04 e efetiva a solicitação]
+    G --> H[Assinatura Ativa pela duração em dias: descontos valem nas novas reservas]
 
     H --> I{Evento}
     I -- Faltam poucos dias --> J[/Aviso de vencimento ao cliente/]
-    I -- Venceu ou foi encerrado --> K[Assinatura Inativa: cliente passa a ser tratado como avulso]
-    I -- Troca de plano --> L[Encerra o atual e cria nova assinatura]
+    I -- Venceu --> K[Assinatura Inativa: cliente passa a ser tratado como avulso]
+    I -- Cancelamento --> K1[Sem devolução: plano segue até o vencimento pago, só impede a renovação] --> K
+    I -- Troca de plano --> L[Nova assinatura passa a valer no próximo vencimento, sem devolução]
     K --> M[Reservas já feitas mantêm o valor gravado]
 ```
 
@@ -242,13 +253,16 @@ flowchart TD
     D --> E{Dados válidos e e-mail ou documento únicos?}
     E -- Não --> E1[/Erro claro/] --> D
     E -- Sim --> F[Salva cliente]
-    B -- Inativar --> G{Possui reservas futuras ativas?}
-    G -- Sim --> G1[/Trate as reservas antes de inativar/]
-    G -- Não --> H[Cliente Inativo: histórico preservado, login bloqueado]
+    B -- Inativar ou anonimizar a pedido do titular --> G{Possui reservas futuras ativas?}
+    G -- Sim --> G1[/Trate as reservas antes de inativar ou anonimizar/]
+    G -- Não --> G2{Ação}
+    G2 -- Inativar --> H[Cliente Inativo: histórico preservado, login bloqueado]
+    G2 -- Anonimizar --> H1[Dados pessoais anonimizados, cadastro anônimo e inativo, histórico ligado a ele, registra quem fez]
     C --> Z([Fim])
     F --> Z
     G1 --> Z
     H --> Z
+    H1 --> Z
 ```
 
 ---
@@ -320,6 +334,8 @@ Matriz de permissões (RN17):
 |------|:-------:|:--------:|:-------------:|
 | Ver e reservar em seu nome | ✔ | ✔ (para qualquer cliente) | ✔ |
 | Ver dados de outros clientes | ✘ | ✔ | ✔ |
+| Cancelar a própria reserva | ✔ | ✔ (de qualquer cliente) | ✔ |
+| Solicitar contratação, troca ou cancelamento de plano | ✔ (só o próprio) | ✔ (efetiva) | ✔ (efetiva) |
 | Registrar pagamento e estorno | ✘ | ✔ | ✔ |
 | Encerrar reserva (concluída ou no-show) | ✘ | ✔ | ✔ |
 | Cadastrar, editar e inativar clientes | ✘ | ✔ | ✔ |

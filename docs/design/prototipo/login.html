@@ -1,0 +1,428 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hubbi Login</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap">
+<style>
+/* Layout: duas colunas no computador. Esquerda: formulário em fundo claro, sem cartão. Direita: painel Roxo Hubbi emoldurado que mostra o que espera o usuário depois de entrar. No celular, só o formulário. Tema claro único, por escolha (igual à landing). */
+:root{
+  color-scheme: light;
+  --ink:#1E1D2B; --ink-soft:#4A4860; --primary:#4A56C8; --primary-press:#3A45AE;
+  --sky:#E5E7FA; --lilac:#E3D9F6; --lilac-deep:#654AA6; --paper:#F7F6FC; --white:#FFFFFF;
+  --plum:#38265F; --peri:#91A3DC; --line:#E4E1F0; --field:#807C98;
+  --ok-bg:#E3F4EA; --ok:#17633A; --err-bg:#FBE3E3; --err:#A12626; --warn-bg:#FDF1D8; --warn:#7A4B00;
+  --f-display:"Nunito","Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-hand:"Caveat","Comic Sans MS",cursive;
+  --r-pill:999px; --r-frame:36px; --r-ctl:14px;
+  --ease-out:cubic-bezier(.2,.75,.2,1); --ease-spring:cubic-bezier(.34,1.45,.55,1);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--white);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-inline:16px}
+:focus-visible{outline:3px solid var(--primary);outline-offset:3px;border-radius:8px}
+a{color:var(--primary);font-weight:600;text-underline-offset:3px}
+h1,h2{font-family:var(--f-display);margin:0;text-wrap:balance;color:var(--ink)}
+p{margin:0}
+
+.page{min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:16px;padding-block:16px}
+.auth{display:flex;flex-direction:column;padding:8px clamp(8px,4vw,56px)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:56px}
+.logo{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--plum)}
+.logo svg{width:34px;height:34px;color:var(--plum);--mark-table:var(--peri);transition:transform .7s var(--ease-spring)}
+.logo:hover svg{transform:rotate(120deg)}
+.logo span{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.03em}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:15px;color:var(--ink-soft);text-decoration:none;font-weight:500;padding:10px 14px;border-radius:var(--r-pill)}
+.back:hover{background:var(--paper);color:var(--ink)}
+.back svg{width:16px;height:16px}
+
+.stage{flex:1;display:flex;align-items:center;justify-content:center;padding-block:40px}
+.view{width:100%;max-width:420px;display:flex;flex-direction:column;gap:24px}
+.view h1{font-size:clamp(34px,4vw,44px);font-weight:900;letter-spacing:-.045em;line-height:1.05}
+.view .sub{color:var(--ink-soft);font-size:17px}
+form{display:flex;flex-direction:column;gap:18px}
+.field{display:flex;flex-direction:column;gap:8px}
+.field-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+label{font-weight:600;font-size:15px}
+.link-btn{background:none;border:0;padding:4px 2px;font:600 14px var(--f-body);color:var(--primary);cursor:pointer;text-decoration:underline;text-underline-offset:3px;border-radius:6px}
+.control{position:relative}
+input[type=email],input[type=password],input[type=text]{width:100%;min-height:54px;border:1.5px solid var(--field);border-radius:var(--r-ctl);padding:0 16px;font:400 16px var(--f-body);color:var(--ink);background:var(--white);transition:border-color .15s, box-shadow .15s}
+input::placeholder{color:#8C88A3}
+input:hover{border-color:var(--ink-soft)}
+input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(74,86,200,.18)}
+input[aria-invalid=true]{border-color:var(--err);box-shadow:0 0 0 4px rgba(161,38,38,.10)}
+input[readonly]{background:var(--paper);color:var(--ink-soft)}
+.has-toggle input{padding-right:60px}
+.toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:10px;background:none;color:var(--ink-soft);cursor:pointer;display:grid;place-items:center}
+.toggle:hover{background:var(--paper);color:var(--ink)}
+.toggle svg{width:22px;height:22px}
+.hint,.error{font-size:14px;display:flex;gap:6px;align-items:flex-start}
+.hint{color:var(--warn)}
+.error{color:var(--err);font-weight:500}
+.hint svg,.error svg{width:16px;height:16px;flex:none;margin-top:2px}
+.alert{display:flex;gap:12px;align-items:flex-start;background:var(--err-bg);color:var(--err);border-radius:16px;padding:14px 16px;font-size:15px}
+.alert svg{width:20px;height:20px;flex:none;margin-top:1px}
+.alert b{display:block;color:var(--err)}
+.alert p{color:#6E1A1A}
+.alert:focus{outline:3px solid var(--err);outline-offset:3px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 28px;border-radius:var(--r-pill);font:600 17px var(--f-body);text-decoration:none;border:0;cursor:pointer;transition:background .15s, transform .15s}
+.btn-primary{background:var(--primary);color:var(--white);width:100%}
+.btn-primary:hover{background:var(--primary-press)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary[aria-busy=true]{cursor:progress;background:var(--primary-press)}
+.btn-soft{background:var(--white);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line);width:100%}
+.btn-soft:hover{box-shadow:inset 0 0 0 1.5px var(--primary)}
+.btn svg{width:18px;height:18px;transition:transform .2s var(--ease-out)}
+.btn:hover svg.arrow{transform:translateX(4px)}
+.spinner{width:20px;height:20px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .8s linear infinite}
+.divider{display:flex;align-items:center;gap:12px;color:var(--ink-soft);font-size:14px}
+.divider::before,.divider::after{content:"";flex:1;height:1px;background:var(--line)}
+.signup{text-align:center;color:var(--ink-soft);font-size:15px}
+.team-note{display:flex;gap:10px;align-items:flex-start;font-size:14px;color:var(--ink-soft);background:var(--paper);border-radius:14px;padding:12px 14px}
+.team-note svg{width:18px;height:18px;flex:none;color:var(--lilac-deep);margin-top:2px}
+.badge-proto{align-self:flex-start;font-size:12px;font-weight:600;color:var(--lilac-deep);background:var(--lilac);padding:4px 10px;border-radius:var(--r-pill)}
+.done-icon{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:var(--ok-bg);color:var(--ok)}
+.done-icon.mail{background:var(--sky);color:var(--primary)}
+.done-icon svg{width:32px;height:32px}
+.mail-box{font-weight:600;color:var(--ink);word-break:break-all}
+.resend{font-size:14px;color:var(--ink-soft);text-align:center}
+.legal{font-size:13px;color:var(--ink-soft);text-align:center;padding-bottom:8px}
+
+/* Painel da marca */
+.aside{border-radius:var(--r-frame);background:var(--plum);position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:clamp(32px,4vw,56px);color:#F1EEFA;min-height:640px}
+.aside::before{content:"";position:absolute;width:70%;aspect-ratio:1;right:-18%;top:-14%;border-radius:50%;background:radial-gradient(circle,rgba(145,163,220,.28),rgba(145,163,220,0) 65%);pointer-events:none}
+.aside::after{content:"";position:absolute;width:60%;aspect-ratio:1;left:-20%;bottom:-25%;border-radius:50%;background:radial-gradient(circle,rgba(227,217,246,.16),rgba(227,217,246,0) 65%);pointer-events:none}
+.aside > *{position:relative}
+.aside h2{color:#F7F6FC;font-size:clamp(32px,3.4vw,46px);font-weight:900;letter-spacing:-.045em;line-height:1.05;max-width:13ch}
+.aside h2 span{display:block;color:var(--peri)}
+.aside .sub{color:#D7D1EA;font-size:17px;max-width:32ch;margin-top:16px}
+.big-mark{position:absolute;right:clamp(24px,4vw,56px);top:clamp(24px,4vw,56px);width:clamp(72px,8vw,104px);height:clamp(72px,8vw,104px);color:#F7F6FC;--mark-table:var(--peri)}
+.preview{display:flex;flex-direction:column;gap:12px;max-width:420px}
+.res-card{background:#F7F6FC;color:var(--ink);border-radius:24px;padding:20px 22px;display:flex;flex-direction:column;gap:12px;box-shadow:0 24px 60px rgba(10,4,30,.35)}
+.res-top{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.res-top span{font-size:13px;color:var(--ink-soft)}
+.state{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:600;color:var(--ok);background:var(--ok-bg);padding:4px 10px;border-radius:var(--r-pill)}
+.state svg{width:13px;height:13px}
+.res-card h3{margin:0;font-family:var(--f-display);font-size:22px;font-weight:900;letter-spacing:-.025em}
+.res-meta{display:flex;flex-wrap:wrap;gap:8px}
+.res-meta span{display:inline-flex;align-items:center;gap:6px;font-size:14px;background:var(--white);border:1px solid var(--line);padding:6px 12px;border-radius:12px}
+.res-meta svg{width:15px;height:15px;color:var(--primary)}
+.pts-card{align-self:flex-start;margin-left:40px;background:var(--white);color:var(--ink);border-radius:18px;padding:12px 16px;display:flex;align-items:center;gap:12px;box-shadow:0 18px 40px rgba(10,4,30,.3)}
+.pts-card b{font-family:var(--f-display);font-size:26px;font-weight:900;color:var(--ok);letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.pts-card span{font-size:13px;color:var(--ink-soft);line-height:1.3}
+.hand{font-family:var(--f-hand);font-size:26px;color:#E3D9F6;transform:rotate(-5deg);margin-left:8px;display:flex;align-items:center;gap:6px}
+.hand svg{width:46px;height:30px}
+
+/* Barra de estados do protótipo */
+.proto{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:4px;background:rgba(30,29,43,.92);backdrop-filter:blur(8px);color:#F1EEFA;border-radius:var(--r-pill);padding:6px;box-shadow:0 12px 40px rgba(10,4,30,.3);max-width:calc(100vw - 24px);overflow-x:auto}
+.proto span{font-size:12px;padding:0 10px 0 12px;white-space:nowrap;color:#C9C1E2}
+.proto button{font:500 13px var(--f-body);color:#F1EEFA;background:none;border:0;border-radius:var(--r-pill);padding:8px 12px;cursor:pointer;white-space:nowrap}
+.proto button:hover{background:rgba(255,255,255,.1)}
+.proto button[aria-pressed=true]{background:var(--peri);color:var(--ink);font-weight:600}
+.proto button:focus-visible{outline:2px solid var(--peri);outline-offset:2px}
+
+/* Movimento */
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes rise-big{from{opacity:0;transform:translateY(48px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes spin-once{from{transform:rotate(-120deg)}to{transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes fade-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+@media (prefers-reduced-motion:no-preference){
+  .top .logo svg{animation:spin-once 1s var(--ease-spring) .2s both}
+  .view.enter > *{animation:rise .6s var(--ease-out) both;animation-delay:calc(var(--i,0) * 70ms + 60ms)}
+  .view.swap{animation:fade-in .35s var(--ease-out) both}
+  .aside{animation:rise-big .9s var(--ease-out) .1s both}
+  .big-mark{animation:spin-once 1.2s var(--ease-spring) .6s both}
+  .res-card{animation:rise-big .8s var(--ease-out) .55s both}
+  .pts-card{animation:rise .7s var(--ease-out) .85s both, float 6s ease-in-out 2s infinite}
+  .hand{animation:rise .6s var(--ease-out) 1.2s both}
+  .shake{animation:shake .4s var(--ease-out)}
+  .alert{animation:fade-in .3s var(--ease-out) both}
+}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:2s}}
+
+@media (max-width:900px){
+  .page{grid-template-columns:1fr}
+  .aside{display:none}
+  .auth{padding-inline:0}
+  .stage{align-items:flex-start;padding-top:32px;padding-bottom:96px}
+}
+@media (max-width:420px){
+  body{padding-inline:12px}
+  .back span{display:none}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 100 100">
+    <polygon points="33,41 67,41 50,70" style="fill:var(--mark-table,#91A3DC)" stroke-linejoin="round" stroke-width="5" stroke="var(--mark-table,#91A3DC)"/>
+    <g id="person" fill="currentColor"><circle cx="50" cy="12" r="6"/><path d="M35 36h30c3.5 0 5.2-3 3.6-6l-3.4-5.6C63.8 22 61.8 21 59.5 21h-19c-2.3 0-4.3 1-5.7 3.4L31.4 30c-1.6 3 .1 6 3.6 6z"/></g>
+    <use href="#person" transform="rotate(120 50 50.7)"/>
+    <use href="#person" transform="rotate(240 50 50.7)"/>
+  </symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></g></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.6 3.6M6.6 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7c1.9 0 3.6-.6 5-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<div class="page">
+  <main class="auth">
+    <div class="top">
+      <a class="logo" href="index.html" aria-label="Hubbi, voltar para o site"><svg aria-hidden="true"><use href="#mark"/></svg><span>Hubbi</span></a>
+      <a class="back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg><span>Voltar para o site</span></a>
+    </div>
+
+    <div class="stage">
+      <!-- T02 Login -->
+      <section class="view enter" id="view-login" aria-labelledby="login-t">
+        <h1 id="login-t" style="--i:0">Que bom te ver de novo.</h1>
+        <p class="sub" id="login-sub" style="--i:1">Entre para reservar seu espaço e acompanhar suas reservas.</p>
+
+        <div class="alert" id="login-alert" role="alert" tabindex="-1" hidden style="--i:2">
+          <svg aria-hidden="true"><use href="#i-alert"/></svg>
+          <div><b>E-mail ou senha incorretos.</b><p>Confira e tente de novo, ou recupere sua senha.</p></div>
+        </div>
+
+        <form id="login-form" novalidate style="--i:3">
+          <div class="field">
+            <label for="email">E-mail</label>
+            <input type="email" id="email" name="email" autocomplete="username" inputmode="email" placeholder="nome@email.com" aria-describedby="email-err">
+            <p class="error" id="email-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+          </div>
+          <div class="field">
+            <div class="field-row">
+              <label for="password">Senha</label>
+              <button class="link-btn" type="button" data-go="recover">Esqueci minha senha</button>
+            </div>
+            <div class="control has-toggle">
+              <input type="password" id="password" name="password" autocomplete="current-password" aria-describedby="password-err caps">
+              <button class="toggle" type="button" id="toggle-pass" aria-label="Mostrar senha" aria-pressed="false"><svg aria-hidden="true"><use href="#i-eye"/></svg></button>
+            </div>
+            <p class="hint" id="caps" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg>Caps Lock está ativado.</p>
+            <p class="error" id="password-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+          </div>
+          <button class="btn btn-primary" type="submit" id="login-btn"><span>Entrar</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+        </form>
+
+        <div class="divider" style="--i:4">ou</div>
+        <p class="signup" style="--i:5">Ainda não tem conta? <a href="cadastro.html" id="to-signup">Criar conta grátis</a></p>
+        <p class="team-note" style="--i:6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.6-3.6 3.2-5.5 6.5-5.5s5.9 1.9 6.5 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18.5 14.7c1.7.8 2.8 2.6 3 5.3"/></svg><span>É da equipe do coworking? Entre por aqui também. O sistema abre o painel certo para o seu perfil.</span></p>
+      </section>
+
+      <!-- T03 Recuperar senha -->
+      <section class="view" id="view-recover" aria-labelledby="rec-t" hidden>
+        <span class="badge-proto">Fluxo a confirmar na spec</span>
+        <h1 id="rec-t">Vamos criar uma senha nova.</h1>
+        <p class="sub">Informe o e-mail da sua conta. Enviamos um link para você criar outra senha.</p>
+        <form id="rec-form" novalidate>
+          <div class="field">
+            <label for="rec-email">E-mail</label>
+            <input type="email" id="rec-email" autocomplete="username" inputmode="email" placeholder="nome@email.com" aria-describedby="rec-email-err">
+            <p class="error" id="rec-email-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+          </div>
+          <button class="btn btn-primary" type="submit" id="rec-btn"><span>Enviar link</span></button>
+          <button class="btn btn-soft" type="button" data-go="login">Voltar para o login</button>
+        </form>
+      </section>
+
+      <!-- T03 Link enviado -->
+      <section class="view" id="view-sent" aria-labelledby="sent-t" hidden>
+        <div class="done-icon mail" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg></div>
+        <h1 id="sent-t" tabindex="-1">Confira seu e-mail.</h1>
+        <p class="sub">Se houver uma conta com <span class="mail-box" id="sent-email">nome@email.com</span>, você vai receber um link para criar uma nova senha.</p>
+        <button class="btn btn-primary" type="button" data-go="login">Voltar para o login</button>
+        <p class="resend" aria-live="polite"><span id="resend-txt">Não chegou? Você pode reenviar em <b id="resend-s">30</b> s.</span> <button class="link-btn" type="button" id="resend-btn" hidden>Reenviar link</button></p>
+      </section>
+
+      <!-- Sucesso do login -->
+      <section class="view" id="view-done" aria-labelledby="done-t" hidden>
+        <div class="done-icon" aria-hidden="true"><svg><use href="#i-check"/></svg></div>
+        <h1 id="done-t" tabindex="-1">Tudo certo, Ana.</h1>
+        <p class="sub">Abrindo suas reservas…</p>
+        <button class="btn btn-soft" type="button" data-go="login">Voltar ao login (protótipo)</button>
+      </section>
+    </div>
+
+    <p class="legal">Ao entrar, você concorda com os <a href="#termos">Termos de uso</a> e a <a href="#privacidade">Política de privacidade</a>.</p>
+  </main>
+
+  <aside class="aside" aria-label="Prévia do que você encontra depois de entrar">
+    <svg class="big-mark" aria-hidden="true"><use href="#mark"/></svg>
+    <div>
+      <h2>Seu espaço <span>já está te esperando.</span></h2>
+      <p class="sub">Veja a próxima reserva, o preço que você pagou e seus pontos verdes logo na entrada.</p>
+    </div>
+    <div class="preview" aria-hidden="true">
+      <p class="hand">Já confirmada!
+        <svg viewBox="0 0 46 30" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M2 6c14 0 28 4 38 18"/><path d="M32 22l8 4 1-9"/></svg></p>
+      <div class="res-card">
+        <div class="res-top"><span>Próxima reserva (exemplo)</span><span class="state"><svg><use href="#i-check"/></svg>Confirmada</span></div>
+        <h3>Sala Aurora</h3>
+        <div class="res-meta">
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M3 10h18M8 3v4M16 3v4"/></svg>Terça, 14/10</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>14:00 às 16:00</span>
+          <span>R$ 128,00 com 20% do plano</span>
+        </div>
+      </div>
+      <div class="pts-card"><b>140</b><span>pontos verdes<br>faltam 60 para o resgate</span></div>
+    </div>
+  </aside>
+</div>
+
+<nav class="proto" aria-label="Estados do protótipo">
+  <span>Estados do protótipo</span>
+  <button type="button" data-state="login" aria-pressed="true">Padrão</button>
+  <button type="button" data-state="invalid" aria-pressed="false">Campos vazios</button>
+  <button type="button" data-state="error" aria-pressed="false">Login inválido</button>
+  <button type="button" data-state="loading" aria-pressed="false">Carregando</button>
+  <button type="button" data-state="recover" aria-pressed="false">Recuperar senha</button>
+  <button type="button" data-state="sent" aria-pressed="false">Link enviado</button>
+</nav>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const views = {login:$('view-login'), recover:$('view-recover'), sent:$('view-sent'), done:$('view-done')};
+  const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  let timers = [];
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+
+  function show(name, focusEl){
+    Object.entries(views).forEach(([k,v])=>{ v.hidden = k!==name; v.classList.remove('enter','swap'); });
+    const v = views[name];
+    if (!reduce){ void v.offsetWidth; v.classList.add('swap'); }
+    const f = focusEl || v.querySelector('h1');
+    if (f){ if (!f.hasAttribute('tabindex') && f.tagName==='H1') f.setAttribute('tabindex','-1'); f.focus({preventScroll:true}); }
+  }
+  function setErr(input, msg){
+    const box = $(input.id+'-err');
+    input.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    box.hidden = !msg; box.querySelector('span').textContent = msg || '';
+  }
+  function checkEmail(input){
+    const v = input.value.trim();
+    if (!v) return 'Digite seu e-mail.';
+    if (!EMAIL.test(v)) return 'Confira o e-mail. Ele precisa ter @ e domínio, como nome@email.com.';
+    return '';
+  }
+  function busy(btn, on, text){
+    btn.setAttribute('aria-busy', String(on));
+    btn.disabled = on;
+    if (!btn.dataset.label) btn.dataset.label = btn.innerHTML;
+    btn.innerHTML = on ? '<span class="spinner" aria-hidden="true"></span><span>'+text+'</span>' : btn.dataset.label;
+  }
+  function shake(el){ if (reduce) return; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+
+  /* Login */
+  const form = $('login-form'), email = $('email'), pass = $('password'), btn = $('login-btn'), alertBox = $('login-alert');
+  function resetLogin(){
+    clearTimers(); busy(btn,false); alertBox.hidden = true;
+    [email,pass].forEach(i=>{ setErr(i,''); i.readOnly = false; });
+  }
+  function validateLogin(){
+    const e = checkEmail(email), p = pass.value ? '' : 'Digite sua senha.';
+    setErr(email, e); setErr(pass, p);
+    const first = e ? email : (p ? pass : null);
+    if (first){ first.focus(); shake(form); }
+    return !first;
+  }
+  function startLoading(){
+    alertBox.hidden = true;
+    [email,pass].forEach(i=>i.readOnly = true);
+    busy(btn, true, 'Entrando…');
+  }
+  function showLoginError(){
+    busy(btn,false); [email,pass].forEach(i=>i.readOnly = false);
+    pass.value = '';
+    alertBox.hidden = false; alertBox.focus(); shake(form);
+  }
+  form.addEventListener('submit', ev=>{
+    ev.preventDefault();
+    if (btn.disabled) return;
+    if (!validateLogin()) return;
+    startLoading();
+    later(()=>{ busy(btn,false); [email,pass].forEach(i=>i.readOnly=false); show('done'); setProto('none'); }, 1300);
+  });
+  [email].forEach(i=>i.addEventListener('blur', ()=>{ if (i.value) setErr(i, checkEmail(i)); }));
+  email.addEventListener('input', ()=>{ if (email.getAttribute('aria-invalid')==='true') setErr(email, checkEmail(email)); });
+  pass.addEventListener('input', ()=>{ if (pass.value) setErr(pass,''); });
+  const caps = $('caps');
+  ['keydown','keyup'].forEach(t=>pass.addEventListener(t, e=>{ if (e.getModifierState) caps.hidden = !e.getModifierState('CapsLock'); }));
+  pass.addEventListener('blur', ()=>caps.hidden = true);
+  const tog = $('toggle-pass');
+  tog.addEventListener('click', ()=>{
+    const on = pass.type === 'password';
+    pass.type = on ? 'text' : 'password';
+    tog.setAttribute('aria-pressed', String(on));
+    tog.setAttribute('aria-label', on ? 'Ocultar senha' : 'Mostrar senha');
+    tog.querySelector('use').setAttribute('href', on ? '#i-eye-off' : '#i-eye');
+    pass.focus();
+  });
+
+  /* Recuperar senha */
+  const rForm = $('rec-form'), rEmail = $('rec-email'), rBtn = $('rec-btn');
+  rForm.addEventListener('submit', ev=>{
+    ev.preventDefault();
+    if (rBtn.disabled) return;
+    const e = checkEmail(rEmail); setErr(rEmail, e);
+    if (e){ rEmail.focus(); shake(rForm); return; }
+    busy(rBtn, true, 'Enviando…');
+    later(()=>{ busy(rBtn,false); goSent(rEmail.value.trim()); }, 1100);
+  });
+  rEmail.addEventListener('input', ()=>{ if (rEmail.getAttribute('aria-invalid')==='true') setErr(rEmail, checkEmail(rEmail)); });
+  function goSent(addr){
+    $('sent-email').textContent = addr || 'nome@email.com';
+    show('sent'); countdown();
+  }
+  function countdown(){
+    let s = 30; $('resend-s').textContent = s; $('resend-txt').hidden = false; $('resend-btn').hidden = true;
+    const tick = () => { s--; if (s<=0){ $('resend-txt').hidden = true; $('resend-btn').hidden = false; return; } $('resend-s').textContent = s; later(tick, 1000); };
+    later(tick, 1000);
+  }
+  $('resend-btn').addEventListener('click', ()=>{ clearTimers(); countdown(); });
+
+  /* Navegação entre telas */
+  document.querySelectorAll('[data-go]').forEach(b=>b.addEventListener('click', ()=>{
+    clearTimers();
+    const to = b.dataset.go;
+    if (to==='recover'){ rEmail.value = email.value; setErr(rEmail,''); show('recover', rEmail); setProto('recover'); }
+    else { resetLogin(); show('login', email); setProto('login'); }
+  }));
+
+  /* Contexto vindo da landing: #reservar ou #plano */
+  const ctx = {
+    reservar:'Entre para concluir sua reserva. O espaço e o preço que você escolheu continuam na tela depois.',
+    plano:'Entre para pedir o seu plano. A recepção ativa quando registrar o pagamento.'
+  }[location.hash.slice(1)];
+  if (ctx){ $('login-sub').textContent = ctx; $('to-signup').href = 'cadastro.html' + location.hash; }
+
+  /* Barra de estados do protótipo */
+  const protoBtns = document.querySelectorAll('.proto button');
+  function setProto(name){ protoBtns.forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.state===name))); }
+  protoBtns.forEach(b=>b.addEventListener('click', ()=>{
+    const s = b.dataset.state; setProto(s); clearTimers();
+    if (s==='recover'){ setErr(rEmail,''); show('recover', rEmail); return; }
+    if (s==='sent'){ goSent(rEmail.value.trim() || 'ana.souza@email.com'); return; }
+    resetLogin(); show('login', email);
+    if (s==='invalid'){ email.value=''; pass.value=''; validateLogin(); }
+    if (s==='error'){ email.value = email.value || 'ana.souza@email.com'; showLoginError(); }
+    if (s==='loading'){ email.value = email.value || 'ana.souza@email.com'; pass.value = pass.value || 'senha-exemplo'; startLoading(); }
+  }));
+  /* Vindo do cadastro (MSG-01): abrir direto em Recuperar senha */
+  if (location.hash === '#recuperar'){ show('recover', rEmail); setProto('recover'); }
+})();
+</script>
+</body>
+</html>

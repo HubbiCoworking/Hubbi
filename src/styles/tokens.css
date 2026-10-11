@@ -1,0 +1,175 @@
+/* Tokens e base do Hubbi.
+   Paleta da marca (Opção C Pervinca) aplicada à linguagem da landing: pílulas, títulos pesados,
+   superfícies Roxo Hubbi. Tema claro único, por escolha. */
+:root {
+  color-scheme: light;
+  --ink: #1E1D2B;          /* títulos e corpo forte */
+  --ink-soft: #4A4860;     /* corpo e textos de apoio */
+  --primary: #4A56C8;      /* ações, links, destaque de título */
+  --primary-press: #3A45AE;
+  --sky: #E5E7FA;          /* superfícies de destaque, seleção */
+  --lilac: #E3D9F6;        /* etiquetas, bordas suaves */
+  --lilac-deep: #654AA6;   /* texto sobre lilás */
+  --paper: #F7F6FC;        /* fundo base */
+  --white: #FFFFFF;
+  --plum: #38265F;         /* marca: seções escuras e rodapé */
+  --peri: #91A3DC;         /* marca: mesa do símbolo; destaque grande sobre roxo */
+  --line: #E4E1F0;
+  --field: #807C98;        /* borda de campo, 4:1 sobre branco */
+
+  --ok-bg: #E3F4EA; --ok: #17633A;
+  --err-bg: #FBE3E3; --err: #A12626;
+  --warn-bg: #FDF1D8; --warn: #7A4B00;
+
+  --f-display: "Nunito", "Arial Rounded MT Bold", "Trebuchet MS", sans-serif;
+  --f-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --f-hand: "Caveat", "Comic Sans MS", cursive;
+
+  --r-pill: 999px; --r-frame: 40px; --r-card: 24px; --r-ctl: 14px;
+  --shadow-1: 0 1px 2px rgba(56, 38, 95, .06), 0 8px 24px rgba(56, 38, 95, .07);
+  --shadow-2: 0 2px 4px rgba(56, 38, 95, .06), 0 24px 60px rgba(56, 38, 95, .14);
+  --wrap: 1180px;
+  --gutter: 16px;           /* margem lateral da página */
+
+  --ease-out: cubic-bezier(.2, .75, .2, 1);
+  --ease-spring: cubic-bezier(.34, 1.45, .55, 1);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; }
+body {
+  margin: 0;
+  background: var(--white);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  padding-inline: var(--gutter);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+img, svg { max-width: 100%; }
+a { color: var(--primary); }
+:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; border-radius: 8px; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+@media (max-width: 560px) { :root { --gutter: 12px; } }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; animation: none !important; }
+}
+
+/* Barra "Estados do protótipo" (usada nas telas de revisão) */
+.proto { position: fixed; left: 50%; bottom: calc(16px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); z-index: 50; display: flex; align-items: center; gap: 4px; background: rgba(30, 29, 43, .92); backdrop-filter: blur(8px); color: #F1EEFA; border-radius: var(--r-pill); padding: 6px; box-shadow: 0 12px 40px rgba(10, 4, 30, .3); max-width: calc(100vw - 24px); overflow-x: auto; }
+.proto { scrollbar-width: none; }
+.proto::-webkit-scrollbar { display: none; }
+.proto span { font-size: 12px; padding: 0 10px 0 12px; white-space: nowrap; color: #C9C1E2; }
+.proto button { font: 500 13px var(--f-body); color: #F1EEFA; background: none; border: 0; border-radius: var(--r-pill); padding: 8px 12px; cursor: pointer; white-space: nowrap; }
+.proto button:hover { background: rgba(255, 255, 255, .1); }
+.proto button[aria-pressed="true"] { background: var(--peri); color: var(--ink); font-weight: 600; }
+.proto button:focus-visible { outline: 2px solid var(--peri); outline-offset: 2px; }
+
+/* Animações compartilhadas */
+@keyframes pop{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes rise{from{opacity:0;transform:translateY(22px)}to{opacity:1;transform:none}}
+@keyframes rise-big{from{opacity:0;transform:translateY(64px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes fade{from{opacity:0}to{opacity:1}}
+@keyframes draw{from{stroke-dashoffset:120}to{stroke-dashoffset:0}}
+@keyframes spin-once{from{transform:rotate(-120deg)}to{transform:none}}
+@keyframes rv{from{opacity:0;transform:translateY(44px)}to{opacity:1;transform:none}}
+@keyframes rv-scale{from{transform:scale(.93);border-radius:72px}to{transform:none}}
+@keyframes grow{from{width:0}to{width:100%}}
+@keyframes drift{0%{transform:translate(0,0)}50%{transform:translate(-6%,-8%)}100%{transform:translate(0,0)}}
+@keyframes ping{0%{box-shadow:0 0 0 0 rgba(74,86,200,.35)}100%{box-shadow:0 0 0 12px rgba(74,86,200,0)}}
+@keyframes flash{0%{transform:scale(1)}40%{transform:scale(1.04)}100%{transform:scale(1)}}@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes shake { 0%, 100% { transform: none; } 20% { transform: translateX(-8px); } 40% { transform: translateX(7px); } 60% { transform: translateX(-5px); } 80% { transform: translateX(3px); } }
+@keyframes fade-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+@keyframes pop-in { 0% { transform: scale(.4); opacity: 0; } 70% { transform: scale(1.08); } 100% { transform: none; opacity: 1; } }
+
+/* ===== Acessibilidade ===== */
+
+/* Pular para o conteúdo: escondido até receber o foco do teclado. */
+.skip-link { position: fixed; left: var(--gutter); top: 12px; z-index: 100; transform: translateY(-160%); background: var(--ink); color: var(--white); font: 600 16px var(--f-body); padding: 12px 20px; border-radius: var(--r-pill); text-decoration: none; box-shadow: var(--shadow-2); }
+.skip-link:focus { transform: none; }
+.skip-link:focus-visible { outline: 3px solid var(--peri); outline-offset: 3px; }
+/* Destino do foco na troca de página (título ou conteúdo): sem contorno no clique, com contorno no teclado. */
+[tabindex="-1"]:focus:not(:focus-visible) { outline: none; }
+main[tabindex="-1"]:focus-visible { outline-offset: -3px; }
+h1[tabindex="-1"]:focus-visible { outline-offset: 6px; }
+
+/* Botão "Acessibilidade" */
+.a11y-btn { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; padding: 0 14px; border-radius: 14px; border: 0; background: none; color: var(--ink-soft); font: 500 15px var(--f-body); cursor: pointer; }
+.a11y-btn svg { width: 22px; height: 22px; flex: none; }
+.a11y-btn:hover { background: var(--paper); color: var(--ink); }
+.a11y-btn.compact { width: 44px; justify-content: center; padding: 0; border-radius: 50%; }
+
+/* Painel (dialog nativo) */
+.a11y-dialog { width: min(460px, calc(100vw - 24px)); max-height: calc(100dvh - 24px); padding: 0; border: 0; border-radius: 28px; background: var(--white); color: var(--ink); box-shadow: 0 30px 80px rgba(10, 4, 30, .35); }
+.a11y-dialog::backdrop { background: rgba(30, 29, 43, .45); }
+.a11y-inner { padding: 24px; display: flex; flex-direction: column; gap: 18px; }
+.a11y-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.a11y-head h2 { margin: 0; font: 900 24px var(--f-display); letter-spacing: -.03em; }
+.a11y-close { width: 44px; height: 44px; border-radius: 12px; border: 0; background: var(--paper); color: var(--ink); cursor: pointer; display: grid; place-items: center; }
+.a11y-close svg { width: 18px; height: 18px; }
+.a11y-desc { margin: 0; color: var(--ink-soft); font-size: 15px; }
+.a11y-sizes { border: 0; margin: 0; padding: 0; min-width: 0; }
+.a11y-sizes legend { font-weight: 600; font-size: 15px; padding: 0; margin-bottom: 10px; }
+.a11y-sizes > div { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+.a11y-sizes label { position: relative; cursor: pointer; }
+.a11y-sizes input { position: absolute; opacity: 0; inset: 0; margin: 0; cursor: pointer; }
+.a11y-sizes label span { display: flex; flex-direction: column; align-items: center; gap: 2px; min-height: 72px; justify-content: center; border: 1.5px solid var(--field); border-radius: 16px; font-size: 13px; color: var(--ink); text-align: center; padding: 6px; }
+.a11y-sizes label span b { font: 900 20px var(--f-display); }
+.a11y-sizes label:nth-child(2) span b { font-size: 24px; }
+.a11y-sizes label:nth-child(3) span b { font-size: 28px; }
+.a11y-sizes input:checked + span { background: var(--primary); border-color: var(--primary); color: var(--white); font-weight: 600; }
+.a11y-sizes input:focus-visible + span { outline: 3px solid var(--primary); outline-offset: 3px; }
+.a11y-toggles { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.a11y-toggles label { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 12px 14px; border-radius: 16px; border: 1.5px solid var(--line); cursor: pointer; }
+.a11y-toggles label > span { display: flex; flex-direction: column; gap: 2px; }
+.a11y-toggles small { font-size: 13px; color: var(--ink-soft); }
+.a11y-toggles input { appearance: none; flex: none; width: 52px; height: 30px; border-radius: var(--r-pill); background: var(--field); position: relative; cursor: pointer; margin: 0; }
+.a11y-toggles input::after { content: ""; position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: var(--white); box-shadow: 0 1px 3px rgba(0, 0, 0, .2); transition: transform .15s; }
+.a11y-toggles input:checked { background: var(--ok); }
+.a11y-toggles input:checked::after { transform: translateX(22px); }
+.a11y-toggles input:focus-visible { outline: 3px solid var(--primary); outline-offset: 3px; }
+.a11y-tip { margin: 0; font-size: 13px; color: var(--ink-soft); background: var(--paper); border-radius: 14px; padding: 12px 14px; }
+.a11y-tip kbd { font: 600 12px var(--f-body); background: var(--white); border: 1px solid var(--field); border-radius: 6px; padding: 1px 6px; }
+.a11y-actions { display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+.a11y-actions button { min-height: 48px; padding: 0 22px; border-radius: var(--r-pill); font: 600 16px var(--f-body); cursor: pointer; border: 0; }
+.a11y-done { background: var(--primary); color: var(--white); }
+.a11y-done:hover { background: var(--primary-press); }
+.a11y-reset { background: var(--white); color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--field); }
+@media (max-width: 560px) {
+  .a11y-dialog { margin-bottom: 12px; }
+  .a11y-inner { padding: 20px; }
+  .a11y-actions button { flex: 1; }
+}
+
+/* Tamanho do texto: amplia só a área de conteúdo (o menu continua no lugar). */
+html[data-text="lg"] .zoom-area { zoom: 1.15; }
+html[data-text="xl"] .zoom-area { zoom: 1.3; }
+/* A barra do protótipo fica fora da ampliação (ferramenta de revisão, não conteúdo). */
+html[data-text="lg"] .zoom-area .proto { zoom: .87; }
+html[data-text="xl"] .zoom-area .proto { zoom: .77; }
+
+/* Alto contraste: texto de apoio quase preto, bordas e campos bem visíveis, links sublinhados. */
+html[data-contrast="high"] {
+  --ink: #000000;
+  --ink-soft: #1E1D2B;
+  --primary: #2B349E;
+  --primary-press: #1D2478;
+  --lilac-deep: #3F2585;
+  --line: #6A6782;
+  --field: #2A2838;
+  --ok: #0B4A28; --warn: #5A3600; --err: #861E1E;
+}
+:is(html[data-contrast="high"], html[data-links="underline"]) :is(:is(p, dd, small, label, .help) a:not([class*="btn"]), .link-row, .card-head a) { text-decoration: underline; text-underline-offset: 3px; }
+html[data-contrast="high"] :focus-visible { outline-width: 4px; }
+
+
+/* Reduzir animações pela página (além do pedido do sistema, tratado acima) */
+html[data-motion="reduce"] { scroll-behavior: auto; }
+html[data-motion="reduce"] *, html[data-motion="reduce"] *::before, html[data-motion="reduce"] *::after { transition: none !important; animation: none !important; }
