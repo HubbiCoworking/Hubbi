@@ -1,0 +1,469 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Hubbi Cadastro</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@700;800;900&family=Inter:wght@400;500;600&family=Caveat:wght@600&display=swap">
+<style>
+/* Layout: igual ao login. Esquerda: formulário em uma coluna, em dois grupos (Seus dados, Acesso). Direita: painel Roxo Hubbi que explica o que a conta dá e por que cada dado é pedido. No celular, só o formulário. Tema claro único, por escolha. */
+:root{
+  color-scheme: light;
+  --ink:#1E1D2B; --ink-soft:#4A4860; --primary:#4A56C8; --primary-press:#3A45AE;
+  --sky:#E5E7FA; --lilac:#E3D9F6; --lilac-deep:#654AA6; --paper:#F7F6FC; --white:#FFFFFF;
+  --plum:#38265F; --peri:#91A3DC; --line:#E4E1F0; --field:#807C98;
+  --ok-bg:#E3F4EA; --ok:#17633A; --err-bg:#FBE3E3; --err:#A12626; --warn:#7A4B00;
+  --f-display:"Nunito","Arial Rounded MT Bold","Trebuchet MS",sans-serif;
+  --f-body:"Inter",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --f-hand:"Caveat","Comic Sans MS",cursive;
+  --r-pill:999px; --r-frame:36px; --r-ctl:14px;
+  --ease-out:cubic-bezier(.2,.75,.2,1); --ease-spring:cubic-bezier(.34,1.45,.55,1);
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--white);color:var(--ink);font-family:var(--f-body);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;padding-inline:16px}
+:focus-visible{outline:3px solid var(--primary);outline-offset:3px;border-radius:8px}
+a{color:var(--primary);font-weight:600;text-underline-offset:3px}
+h1,h2,h3{font-family:var(--f-display);margin:0;text-wrap:balance;color:var(--ink)}
+p{margin:0}
+
+.page{min-height:100vh;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.95fr);gap:16px;padding-block:16px}
+.auth{display:flex;flex-direction:column;padding:8px clamp(8px,4vw,56px)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;min-height:56px}
+.logo{display:inline-flex;align-items:center;gap:8px;text-decoration:none;color:var(--plum)}
+.logo svg{width:34px;height:34px;color:var(--plum);--mark-table:var(--peri);transition:transform .7s var(--ease-spring)}
+.logo:hover svg{transform:rotate(120deg)}
+.logo span{font-family:var(--f-display);font-weight:900;font-size:23px;letter-spacing:-.03em}
+.back{display:inline-flex;align-items:center;gap:6px;font-size:15px;color:var(--ink-soft);text-decoration:none;font-weight:500;padding:10px 14px;border-radius:var(--r-pill)}
+.back:hover{background:var(--paper);color:var(--ink)}
+.back svg{width:16px;height:16px}
+
+.stage{flex:1;display:flex;justify-content:center;padding-block:40px 32px}
+.view{width:100%;max-width:460px;display:flex;flex-direction:column;gap:24px}
+.view h1{font-size:clamp(34px,4vw,44px);font-weight:900;letter-spacing:-.045em;line-height:1.05}
+.view .sub{color:var(--ink-soft);font-size:17px}
+.have{font-size:15px;color:var(--ink-soft)}
+form{display:flex;flex-direction:column;gap:28px}
+fieldset{border:0;margin:0;padding:0;display:flex;flex-direction:column;gap:18px;min-width:0}
+legend{font-family:var(--f-display);font-weight:800;font-size:19px;letter-spacing:-.02em;padding:0;margin-bottom:18px;display:flex;align-items:center;gap:10px}
+legend .step{width:28px;height:28px;border-radius:50%;background:var(--sky);color:var(--primary);display:inline-grid;place-items:center;font-size:14px;font-family:var(--f-body);font-weight:600}
+.field{display:flex;flex-direction:column;gap:8px}
+label{font-weight:600;font-size:15px}
+.help{font-size:14px;color:var(--ink-soft)}
+.control{position:relative}
+input[type=email],input[type=password],input[type=text],input[type=tel]{width:100%;min-height:54px;border:1.5px solid var(--field);border-radius:var(--r-ctl);padding:0 16px;font:400 16px var(--f-body);color:var(--ink);background:var(--white);transition:border-color .15s, box-shadow .15s}
+input::placeholder{color:#8C88A3}
+input:hover{border-color:var(--ink-soft)}
+input:focus{outline:none;border-color:var(--primary);box-shadow:0 0 0 4px rgba(74,86,200,.18)}
+input[aria-invalid=true]{border-color:var(--err);box-shadow:0 0 0 4px rgba(161,38,38,.10)}
+input[readonly]{background:var(--paper);color:var(--ink-soft)}
+.has-toggle input{padding-right:60px}
+.toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:0;border-radius:10px;background:none;color:var(--ink-soft);cursor:pointer;display:grid;place-items:center}
+.toggle:hover{background:var(--paper);color:var(--ink)}
+.toggle svg{width:22px;height:22px}
+.error{font-size:14px;display:flex;gap:6px;align-items:flex-start;color:var(--err);font-weight:500}
+.error svg{width:16px;height:16px;flex:none;margin-top:2px}
+.rules{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}
+.rules li{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--ink-soft);background:var(--paper);border:1px solid var(--line);padding:5px 10px 5px 8px;border-radius:var(--r-pill);transition:background .2s, color .2s, border-color .2s}
+.rules li svg{width:14px;height:14px}
+.rules li .y{display:none}
+.rules li.met{background:var(--ok-bg);border-color:var(--ok-bg);color:var(--ok);font-weight:600}
+.rules li.met .y{display:block}.rules li.met .n{display:none}
+.check{display:flex;gap:12px;align-items:flex-start;font-weight:400;font-size:15px;color:var(--ink-soft);cursor:pointer}
+.check input{appearance:none;flex:none;width:24px;height:24px;border:1.5px solid var(--field);border-radius:7px;margin:0;display:grid;place-items:center;cursor:pointer;background:var(--white)}
+.check input:checked{background:var(--primary);border-color:var(--primary)}
+.check input:checked::after{content:"";width:12px;height:7px;border-left:2.5px solid #fff;border-bottom:2.5px solid #fff;transform:translateY(-2px) rotate(-45deg)}
+.check input:focus-visible{outline:3px solid var(--primary);outline-offset:3px}
+.check input[aria-invalid=true]{border-color:var(--err)}
+.alert{display:flex;gap:12px;align-items:flex-start;border-radius:16px;padding:16px;font-size:15px;background:var(--err-bg);color:#6E1A1A}
+.alert svg{width:20px;height:20px;flex:none;margin-top:1px;color:var(--err)}
+.alert b{display:block;color:var(--err)}
+.alert ul{margin:6px 0 0;padding-left:18px}
+.alert ul a{color:var(--err)}
+.alert .actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.alert .actions a{display:inline-flex;align-items:center;min-height:40px;padding:0 16px;border-radius:var(--r-pill);font-size:14px;text-decoration:none}
+.alert .actions .solid{background:var(--err);color:#fff}
+.alert .actions .line{box-shadow:inset 0 0 0 1.5px var(--err);color:var(--err)}
+.alert:focus{outline:3px solid var(--err);outline-offset:3px}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 28px;border-radius:var(--r-pill);font:600 17px var(--f-body);text-decoration:none;border:0;cursor:pointer;transition:background .15s, transform .15s}
+.btn-primary{background:var(--primary);color:var(--white);width:100%}
+.btn-primary:hover{background:var(--primary-press)}
+.btn-primary:active{transform:translateY(1px)}
+.btn-primary[aria-busy=true]{cursor:progress;background:var(--primary-press)}
+.btn-soft{background:var(--white);color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--line);width:100%}
+.btn-soft:hover{box-shadow:inset 0 0 0 1.5px var(--primary)}
+.btn svg{width:18px;height:18px;transition:transform .2s var(--ease-out)}
+.btn:hover svg.arrow{transform:translateX(4px)}
+.spinner{width:20px;height:20px;border-radius:50%;border:2.5px solid rgba(255,255,255,.35);border-top-color:#fff;animation:spin .8s linear infinite}
+.free-note{text-align:center;font-size:14px;color:var(--ink-soft);margin-top:-14px}
+.free-note b{color:var(--ink);font-weight:600}
+
+.done-icon{width:64px;height:64px;border-radius:20px;display:grid;place-items:center;background:var(--ok-bg);color:var(--ok)}
+.done-icon svg{width:32px;height:32px}
+.kind{background:var(--paper);border-radius:20px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.kind span{font-size:13px;font-weight:600;color:var(--lilac-deep)}
+.kind p{color:var(--ink-soft);font-size:15px}
+.kind p b{color:var(--ink)}
+.done-actions{display:flex;flex-direction:column;gap:10px}
+
+/* Painel da marca */
+.aside{border-radius:var(--r-frame);background:var(--plum);position:relative;overflow:hidden;display:flex;flex-direction:column;gap:32px;padding:clamp(32px,4vw,56px);color:#F1EEFA;align-self:start;position:sticky;top:16px;min-height:calc(100vh - 32px)}
+.aside::before{content:"";position:absolute;width:70%;aspect-ratio:1;right:-18%;top:-14%;border-radius:50%;background:radial-gradient(circle,rgba(145,163,220,.28),rgba(145,163,220,0) 65%);pointer-events:none}
+.aside > *{position:relative}
+.aside h2{color:#F7F6FC;font-size:clamp(30px,3.2vw,42px);font-weight:900;letter-spacing:-.045em;line-height:1.05;max-width:14ch}
+.aside h2 span{display:block;color:var(--peri)}
+.big-mark{position:absolute;right:clamp(24px,4vw,56px);top:clamp(24px,4vw,56px);width:clamp(64px,7vw,92px);height:clamp(64px,7vw,92px);color:#F7F6FC;--mark-table:var(--peri)}
+.perks{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:12px}
+.perks li{display:flex;gap:14px;align-items:flex-start;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);border-radius:18px;padding:14px 16px}
+.perks .ic{flex:none;width:36px;height:36px;border-radius:11px;background:var(--peri);color:var(--plum);display:grid;place-items:center}
+.perks .ic svg{width:18px;height:18px}
+.perks b{display:block;color:#F7F6FC;font-weight:600}
+.perks span{font-size:14px;color:#D7D1EA}
+.why{background:#F7F6FC;color:var(--ink);border-radius:22px;padding:20px 22px;display:flex;flex-direction:column;gap:10px;margin-top:auto}
+.why h3{font-size:18px;font-weight:800;letter-spacing:-.02em}
+.why dl{margin:0;display:flex;flex-direction:column;gap:8px;font-size:14px}
+.why dt{font-weight:600;display:inline}
+.why dd{margin:0;display:inline;color:var(--ink-soft)}
+.why .lgpd{font-size:13px;color:var(--lilac-deep);font-weight:600}
+.hand{font-family:var(--f-hand);font-size:24px;color:#E3D9F6;transform:rotate(-4deg);align-self:flex-end;margin-bottom:-18px;margin-right:8px}
+
+/* Barra de estados do protótipo */
+.proto{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);z-index:5;display:flex;align-items:center;gap:4px;background:rgba(30,29,43,.92);backdrop-filter:blur(8px);color:#F1EEFA;border-radius:var(--r-pill);padding:6px;box-shadow:0 12px 40px rgba(10,4,30,.3);max-width:calc(100vw - 24px);overflow-x:auto}
+.proto span{font-size:12px;padding:0 10px 0 12px;white-space:nowrap;color:#C9C1E2}
+.proto button{font:500 13px var(--f-body);color:#F1EEFA;background:none;border:0;border-radius:var(--r-pill);padding:8px 12px;cursor:pointer;white-space:nowrap}
+.proto button:hover{background:rgba(255,255,255,.1)}
+.proto button[aria-pressed=true]{background:var(--peri);color:var(--ink);font-weight:600}
+.proto button:focus-visible{outline:2px solid var(--peri);outline-offset:2px}
+
+/* Movimento */
+@keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+@keyframes rise-big{from{opacity:0;transform:translateY(48px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes spin-once{from{transform:rotate(-120deg)}to{transform:none}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes shake{0%,100%{transform:none}20%{transform:translateX(-8px)}40%{transform:translateX(7px)}60%{transform:translateX(-5px)}80%{transform:translateX(3px)}}
+@keyframes fade-in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+@keyframes pop{0%{transform:scale(.4);opacity:0}70%{transform:scale(1.08)}100%{transform:none;opacity:1}}
+@media (prefers-reduced-motion:no-preference){
+  .top .logo svg{animation:spin-once 1s var(--ease-spring) .2s both}
+  .view.enter > *{animation:rise .6s var(--ease-out) both;animation-delay:calc(var(--i,0) * 70ms + 60ms)}
+  .view.swap{animation:fade-in .35s var(--ease-out) both}
+  .aside{animation:rise-big .9s var(--ease-out) .1s both}
+  .big-mark{animation:spin-once 1.2s var(--ease-spring) .6s both}
+  .perks li{animation:rise .6s var(--ease-out) both}
+  .perks li:nth-child(1){animation-delay:.5s}.perks li:nth-child(2){animation-delay:.6s}.perks li:nth-child(3){animation-delay:.7s}.perks li:nth-child(4){animation-delay:.8s}
+  .why{animation:rise .7s var(--ease-out) .95s both}
+  .hand{animation:fade-in .6s var(--ease-out) 1.3s both}
+  .rules li.met svg.y{animation:pop .3s var(--ease-spring)}
+  .done-icon{animation:pop .5s var(--ease-spring) .1s both}
+  .shake{animation:shake .4s var(--ease-out)}
+  .alert{animation:fade-in .3s var(--ease-out) both}
+}
+@media (prefers-reduced-motion:reduce){.spinner{animation-duration:2s}}
+
+@media (max-width:960px){
+  .page{grid-template-columns:1fr}
+  .aside{display:none}
+  .auth{padding-inline:0}
+  .stage{padding-top:24px;padding-bottom:96px}
+}
+@media (max-width:420px){
+  body{padding-inline:12px}
+  .back span{display:none}
+}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="mark" viewBox="0 0 100 100">
+    <polygon points="33,41 67,41 50,70" style="fill:var(--mark-table,#91A3DC)" stroke-linejoin="round" stroke-width="5" stroke="var(--mark-table,#91A3DC)"/>
+    <g id="person" fill="currentColor"><circle cx="50" cy="12" r="6"/><path d="M35 36h30c3.5 0 5.2-3 3.6-6l-3.4-5.6C63.8 22 61.8 21 59.5 21h-19c-2.3 0-4.3 1-5.7 3.4L31.4 30c-1.6 3 .1 6 3.6 6z"/></g>
+    <use href="#person" transform="rotate(120 50 50.7)"/>
+    <use href="#person" transform="rotate(240 50 50.7)"/>
+  </symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5v.01"/></g></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></g></symbol>
+  <symbol id="i-eye-off" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.6 5.1A10.4 10.4 0 0 1 12 5c6.5 0 10 7 10 7a17 17 0 0 1-2.6 3.6M6.6 6.6C3.7 8.4 2 12 2 12s3.5 7 10 7c1.9 0 3.6-.6 5-1.5"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18"/></g></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="m5 12 5 5 9-10" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4" fill="currentColor"/></symbol>
+</svg>
+
+<div class="page">
+  <main class="auth">
+    <div class="top">
+      <a class="logo" href="index.html" aria-label="Hubbi, voltar para o site"><svg aria-hidden="true"><use href="#mark"/></svg><span>Hubbi</span></a>
+      <a class="back" href="index.html"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 12H5M11 18l-6-6 6-6"/></svg><span>Voltar para o site</span></a>
+    </div>
+
+    <div class="stage">
+      <!-- T01 Cadastro -->
+      <section class="view enter" id="view-form" aria-labelledby="t-form">
+        <h1 id="t-form" style="--i:0">Crie sua conta no Hubbi.</h1>
+        <p class="sub" id="form-sub" style="--i:1">Leva poucos minutos. Depois é só escolher o espaço e reservar.</p>
+        <p class="have" style="--i:2">Já tem conta? <a href="login.html">Entrar</a></p>
+
+        <!-- Resumo de erros de validação -->
+        <div class="alert" id="sum" role="alert" tabindex="-1" hidden>
+          <svg aria-hidden="true"><use href="#i-alert"/></svg>
+          <div><b id="sum-title">Confira os campos marcados.</b><ul id="sum-list"></ul></div>
+        </div>
+        <!-- MSG-01 -->
+        <div class="alert" id="dup" role="alert" tabindex="-1" hidden>
+          <svg aria-hidden="true"><use href="#i-alert"/></svg>
+          <div><b>Já existe uma conta com esses dados.</b><p>Entre ou recupere sua senha.</p>
+            <div class="actions"><a class="solid" href="login.html">Entrar</a><a class="line" href="login.html#recuperar">Recuperar senha</a></div>
+          </div>
+        </div>
+
+        <form id="form" novalidate style="--i:3">
+          <fieldset>
+            <legend><span class="step" aria-hidden="true">1</span>Seus dados</legend>
+            <div class="field">
+              <label for="nome">Nome completo</label>
+              <input type="text" id="nome" autocomplete="name" maxlength="100" aria-describedby="nome-err">
+              <p class="error" id="nome-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+            </div>
+            <div class="field">
+              <label for="doc">CPF ou CNPJ</label>
+              <input type="text" id="doc" inputmode="numeric" autocomplete="off" placeholder="000.000.000-00" aria-describedby="doc-help doc-err">
+              <p class="help" id="doc-help">Use CNPJ se a conta for de empresa ou organização.</p>
+              <p class="error" id="doc-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+            </div>
+            <div class="field">
+              <label for="tel">Celular com DDD</label>
+              <input type="tel" id="tel" autocomplete="tel-national" inputmode="tel" placeholder="(11) 91234-5678" aria-describedby="tel-err">
+              <p class="error" id="tel-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend><span class="step" aria-hidden="true">2</span>Acesso</legend>
+            <div class="field">
+              <label for="email">E-mail</label>
+              <input type="email" id="email" autocomplete="email" inputmode="email" placeholder="nome@email.com" aria-describedby="email-err">
+              <p class="error" id="email-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+            </div>
+            <div class="field">
+              <label for="senha">Crie uma senha</label>
+              <div class="control has-toggle">
+                <input type="password" id="senha" autocomplete="new-password" aria-describedby="senha-rules senha-err">
+                <button class="toggle" type="button" id="toggle-pass" aria-label="Mostrar senha" aria-pressed="false"><svg aria-hidden="true"><use href="#i-eye"/></svg></button>
+              </div>
+              <ul class="rules" id="senha-rules" aria-label="Regras da senha">
+                <li data-rule="len"><svg class="n" aria-hidden="true"><use href="#i-dot"/></svg><svg class="y" aria-hidden="true"><use href="#i-check"/></svg><span>8 caracteres ou mais</span><span class="sr" hidden> (ok)</span></li>
+                <li data-rule="let"><svg class="n" aria-hidden="true"><use href="#i-dot"/></svg><svg class="y" aria-hidden="true"><use href="#i-check"/></svg><span>Uma letra</span><span class="sr" hidden> (ok)</span></li>
+                <li data-rule="num"><svg class="n" aria-hidden="true"><use href="#i-dot"/></svg><svg class="y" aria-hidden="true"><use href="#i-check"/></svg><span>Um número</span><span class="sr" hidden> (ok)</span></li>
+              </ul>
+              <p class="error" id="senha-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+            </div>
+          </fieldset>
+
+          <div class="field">
+            <label class="check" for="termos"><input type="checkbox" id="termos" aria-describedby="termos-err"><span>Li e aceito os <a href="#termos">Termos de uso</a> e a <a href="#privacidade">Política de privacidade</a>.</span></label>
+            <p class="error" id="termos-err" hidden><svg aria-hidden="true"><use href="#i-alert"/></svg><span></span></p>
+          </div>
+
+          <button class="btn btn-primary" type="submit" id="btn"><span>Criar minha conta</span><svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>
+          <p class="free-note"><b>Cadastro sem custo.</b> Você só paga pelo que reservar.</p>
+        </form>
+      </section>
+
+      <!-- Sucesso -->
+      <section class="view" id="view-done" aria-labelledby="t-done" hidden>
+        <div class="done-icon" aria-hidden="true"><svg><use href="#i-check"/></svg></div>
+        <h1 id="t-done" tabindex="-1">Conta criada, <span id="done-name">Ana</span>!</h1>
+        <p class="sub">Enviamos uma mensagem de boas-vindas para <b id="done-email">ana.souza@email.com</b>.</p>
+        <div class="kind">
+          <span>Sua conta agora</span>
+          <p><b>Cliente avulso.</b> Você reserva qualquer espaço pagando o valor cheio, na recepção. Com um plano, ganha de 10% a 30% de desconto em toda reserva.</p>
+        </div>
+        <div class="done-actions">
+          <a class="btn btn-primary" href="index.html#espacos" id="done-main">Escolher meu espaço<svg class="arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg></a>
+          <a class="btn btn-soft" href="index.html#planos">Conhecer os planos</a>
+        </div>
+      </section>
+    </div>
+  </main>
+
+  <aside class="aside" aria-label="O que você ganha com a conta">
+    <svg class="big-mark" aria-hidden="true"><use href="#mark"/></svg>
+    <h2>Uma conta, <span>e o espaço é seu.</span></h2>
+    <ul class="perks">
+      <li><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></span><div><b>Filtre pelo que precisa</b><span>Tomadas, internet, quadro branco, acessibilidade.</span></div></li>
+      <li><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 13h8M8 17h4"/></svg></span><div><b>Preço final antes de confirmar</b><span>E a multa ou o estorno antes de cancelar.</span></div></li>
+      <li><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 21c-4-3-7-6.5-7-10.5A7 7 0 0 1 12 3a7 7 0 0 1 7 7.5c0 4-3 7.5-7 10.5z"/></svg></span><div><b>Pontos verdes</b><span>Comparece, ganha pontos, troca por desconto.</span></div></li>
+      <li><span class="ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M20 12 12 20 4 12V4h8z"/></svg></span><div><b>Plano Social</b><span>Para estudantes, microempreendedores e ONGs.</span></div></li>
+    </ul>
+    <p class="hand" aria-hidden="true">Só o necessário, prometido!</p>
+    <div class="why">
+      <h3>Por que pedimos cada dado</h3>
+      <dl>
+        <div><dt>CPF ou CNPJ: </dt><dd>garante uma conta por pessoa ou empresa.</dd></div>
+        <div><dt>Celular: </dt><dd>a recepção avisa você sobre a sua reserva.</dd></div>
+        <div><dt>E-mail: </dt><dd>é o seu login e recebe confirmações e lembretes.</dd></div>
+      </dl>
+      <p class="lgpd">Sua senha fica guardada de forma cifrada. Você pode pedir a exclusão dos seus dados quando quiser.</p>
+    </div>
+  </aside>
+</div>
+
+<nav class="proto" aria-label="Estados do protótipo">
+  <span>Estados do protótipo</span>
+  <button type="button" data-state="form" aria-pressed="true">Padrão</button>
+  <button type="button" data-state="filled" aria-pressed="false">Preenchido</button>
+  <button type="button" data-state="invalid" aria-pressed="false">Erros nos campos</button>
+  <button type="button" data-state="dup" aria-pressed="false">Já cadastrado</button>
+  <button type="button" data-state="loading" aria-pressed="false">Carregando</button>
+  <button type="button" data-state="done" aria-pressed="false">Conta criada</button>
+</nav>
+
+<script>
+(function(){
+  const $ = id => document.getElementById(id);
+  const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const form = $('form'), btn = $('btn'), sum = $('sum'), dup = $('dup');
+  const f = {nome:$('nome'), doc:$('doc'), tel:$('tel'), email:$('email'), senha:$('senha'), termos:$('termos')};
+  const labels = {nome:'Nome completo', doc:'CPF ou CNPJ', tel:'Celular com DDD', email:'E-mail', senha:'Senha', termos:'Termos de uso'};
+  const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+  let timers = [];
+  const later = (fn, ms) => timers.push(setTimeout(fn, ms));
+  const clearTimers = () => { timers.forEach(clearTimeout); timers = []; };
+  const digits = v => v.replace(/\D/g,'');
+
+  /* Contexto vindo da landing */
+  const ctx = {reservar:'Crie a conta para concluir sua reserva. Depois é só confirmar o espaço.', plano:'Crie a conta para pedir o seu plano. A recepção ativa quando registrar o pagamento.'}[location.hash.slice(1)];
+  if (ctx) $('form-sub').textContent = ctx;
+  if (location.hash === '#plano'){ const m = $('done-main'); m.href = 'index.html#planos'; m.firstChild.textContent = 'Escolher meu plano'; }
+
+  /* Máscaras */
+  function maskDoc(v){
+    const d = digits(v).slice(0,14);
+    if (d.length <= 11) return d.replace(/(\d{3})(\d)/,'$1.$2').replace(/(\d{3})\.(\d{3})(\d)/,'$1.$2.$3').replace(/(\d{3})\.(\d{3})\.(\d{3})(\d)/,'$1.$2.$3-$4');
+    return d.replace(/(\d{2})(\d)/,'$1.$2').replace(/(\d{2})\.(\d{3})(\d)/,'$1.$2.$3').replace(/\.(\d{3})(\d)/,'.$1/$2').replace(/(\d{4})(\d)/,'$1-$2');
+  }
+  function maskTel(v){
+    const d = digits(v).slice(0,11);
+    if (d.length <= 2) return d.length ? '('+d : '';
+    if (d.length <= 6) return '('+d.slice(0,2)+') '+d.slice(2);
+    if (d.length <= 10) return '('+d.slice(0,2)+') '+d.slice(2,6)+'-'+d.slice(6);
+    return '('+d.slice(0,2)+') '+d.slice(2,7)+'-'+d.slice(7);
+  }
+  f.doc.addEventListener('input', ()=>{ f.doc.value = maskDoc(f.doc.value); f.doc.placeholder = digits(f.doc.value).length > 11 ? '00.000.000/0000-00' : '000.000.000-00'; });
+  f.tel.addEventListener('input', ()=>{ f.tel.value = maskTel(f.tel.value); });
+
+  /* Validação */
+  function cpfOk(d){
+    if (d.length!==11 || /^(\d)\1+$/.test(d)) return false;
+    for (let t=9; t<11; t++){ let s=0; for (let i=0;i<t;i++) s += d[i]*(t+1-i); if (((s*10)%11)%10 != d[t]) return false; }
+    return true;
+  }
+  function cnpjOk(d){
+    if (d.length!==14 || /^(\d)\1+$/.test(d)) return false;
+    const calc = n => { let s=0, p=n-7; for (let i=0;i<n;i++){ s += d[i]*p--; if (p<2) p=9; } const r = s%11; return r<2?0:11-r; };
+    return calc(12)==d[12] && calc(13)==d[13];
+  }
+  const rules = {
+    len: v => v.length >= 8,
+    let: v => /[A-Za-zÀ-ÿ]/.test(v),
+    num: v => /\d/.test(v)
+  };
+  const check = {
+    nome: v => !v.trim() ? 'Digite seu nome completo.' : (v.trim().split(/\s+/).length < 2 ? 'Digite nome e sobrenome.' : ''),
+    doc: v => { const d = digits(v); if (!d) return 'Digite seu CPF ou CNPJ.'; if (d.length!==11 && d.length!==14) return 'O CPF tem 11 números e o CNPJ tem 14. Confira o que falta.'; if (d.length===11 && !cpfOk(d)) return 'Esse CPF não é válido. Confira os números.'; if (d.length===14 && !cnpjOk(d)) return 'Esse CNPJ não é válido. Confira os números.'; return ''; },
+    tel: v => { const d = digits(v); if (!d) return 'Digite seu celular com DDD.'; if (d.length < 10) return 'Digite o número com DDD, como (11) 91234-5678.'; return ''; },
+    email: v => !v.trim() ? 'Digite seu e-mail.' : (!EMAIL.test(v.trim()) ? 'Confira o e-mail. Ele precisa ter @ e domínio, como nome@email.com.' : ''),
+    senha: v => !v ? 'Crie uma senha.' : (Object.values(rules).every(r=>r(v)) ? '' : 'A senha precisa ter 8 caracteres ou mais, com pelo menos uma letra e um número.'),
+    termos: (_, el) => el.checked ? '' : 'Para criar a conta, aceite os Termos de uso e a Política de privacidade.'
+  };
+  function setErr(key, msg){
+    const el = f[key], box = $(key+'-err');
+    el.setAttribute('aria-invalid', msg ? 'true' : 'false');
+    box.hidden = !msg; box.querySelector('span').textContent = msg || '';
+  }
+  const validate = key => { const m = check[key](f[key].value, f[key]); setErr(key, m); return m; };
+  ['nome','doc','tel','email','senha'].forEach(k=>{
+    f[k].addEventListener('blur', ()=>{ if (f[k].value) validate(k); });
+    f[k].addEventListener('input', ()=>{ if (f[k].getAttribute('aria-invalid')==='true') validate(k); });
+  });
+  f.termos.addEventListener('change', ()=>{ if (f.termos.getAttribute('aria-invalid')==='true') validate('termos'); });
+
+  /* Regras da senha ao vivo */
+  function paintRules(){
+    const v = f.senha.value;
+    document.querySelectorAll('#senha-rules li').forEach(li=>{
+      const ok = rules[li.dataset.rule](v);
+      li.classList.toggle('met', ok); li.querySelector('.sr').hidden = !ok;
+    });
+  }
+  f.senha.addEventListener('input', paintRules);
+  const tog = $('toggle-pass');
+  tog.addEventListener('click', ()=>{
+    const on = f.senha.type === 'password';
+    f.senha.type = on ? 'text' : 'password';
+    tog.setAttribute('aria-pressed', String(on));
+    tog.setAttribute('aria-label', on ? 'Ocultar senha' : 'Mostrar senha');
+    tog.querySelector('use').setAttribute('href', on ? '#i-eye-off' : '#i-eye');
+    f.senha.focus();
+  });
+
+  function shake(el){ if (reduce) return; el.classList.remove('shake'); void el.offsetWidth; el.classList.add('shake'); }
+  function busy(on){
+    btn.setAttribute('aria-busy', String(on)); btn.disabled = on;
+    if (!btn.dataset.label) btn.dataset.label = btn.innerHTML;
+    btn.innerHTML = on ? '<span class="spinner" aria-hidden="true"></span><span>Criando sua conta…</span>' : btn.dataset.label;
+    Object.values(f).forEach(el=>{ if (el.type==='checkbox') el.disabled = on; else el.readOnly = on; });
+  }
+  function validateAll(){
+    dup.hidden = true;
+    const errs = Object.keys(check).map(k=>[k, validate(k)]).filter(([,m])=>m);
+    if (!errs.length){ sum.hidden = true; return true; }
+    $('sum-title').textContent = errs.length === 1 ? 'Confira o campo marcado.' : 'Confira os '+errs.length+' campos marcados.';
+    $('sum-list').innerHTML = errs.map(([k])=>'<li><a href="#'+k+'">'+labels[k]+'</a></li>').join('');
+    sum.hidden = false; sum.focus(); shake(form);
+    return false;
+  }
+  $('sum-list').addEventListener('click', e=>{ const a = e.target.closest('a'); if (!a) return; e.preventDefault(); const el = $(a.getAttribute('href').slice(1)); el.focus(); el.scrollIntoView({block:'center', behavior: reduce?'auto':'smooth'}); });
+
+  function show(name){
+    $('view-form').hidden = name!=='form'; $('view-done').hidden = name!=='done';
+    const v = $('view-'+name); v.classList.remove('enter','swap');
+    if (!reduce){ void v.offsetWidth; v.classList.add('swap'); }
+    if (name==='done') $('t-done').focus();
+    window.scrollTo({top:0, behavior: reduce?'auto':'smooth'});
+  }
+  function finish(){
+    busy(false);
+    $('done-name').textContent = (f.nome.value.trim().split(/\s+/)[0]) || 'Ana';
+    $('done-email').textContent = f.email.value.trim() || 'ana.souza@email.com';
+    show('done'); setProto('done');
+  }
+  form.addEventListener('submit', ev=>{
+    ev.preventDefault();
+    if (btn.disabled || !validateAll()) return;
+    busy(true); setProto('loading');
+    later(finish, 1400);
+  });
+
+  /* Barra de estados do protótipo */
+  const sample = {nome:'Ana Souza', doc:'529.982.247-25', tel:'(11) 91234-5678', email:'ana.souza@email.com', senha:'reserva2026'};
+  function fill(){ Object.entries(sample).forEach(([k,v])=>f[k].value=v); f.termos.checked = true; paintRules(); Object.keys(check).forEach(k=>setErr(k,'')); }
+  function clearAll(){ Object.keys(sample).forEach(k=>f[k].value=''); f.termos.checked=false; paintRules(); Object.keys(check).forEach(k=>setErr(k,'')); sum.hidden = true; dup.hidden = true; }
+  const protoBtns = document.querySelectorAll('.proto button');
+  function setProto(n){ protoBtns.forEach(b=>b.setAttribute('aria-pressed', String(b.dataset.state===n))); }
+  protoBtns.forEach(b=>b.addEventListener('click', ()=>{
+    const s = b.dataset.state; setProto(s); clearTimers(); busy(false);
+    if (s==='done'){ fill(); finish(); return; }
+    if ($('view-form').hidden) show('form');
+    clearAll();
+    if (s==='filled') fill();
+    if (s==='invalid'){ f.nome.value='Ana'; f.doc.value='123.456.789-00'; f.tel.value='(11) 9123'; f.email.value='ana.souza@'; f.senha.value='abc'; paintRules(); validateAll(); }
+    if (s==='dup'){ fill(); dup.hidden = false; dup.focus(); shake(form); }
+    if (s==='loading'){ fill(); busy(true); }
+  }));
+})();
+</script>
+</body>
+</html>
