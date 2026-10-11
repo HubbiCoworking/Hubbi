@@ -87,7 +87,7 @@
 .landing .price b{font-family:var(--f-display);font-size:20px;font-weight:900;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
 .landing .price s{font-size:13px;color:var(--ink-soft);margin-left:6px}
 .landing .price small{display:block;font-size:12px;color:var(--ink-soft)}
-.landing .space .btn{min-height:40px;padding:0 16px;font-size:14px}
+.landing .space .btn{min-height:44px;padding:0 16px;font-size:14px}
 .landing section.block{max-width:var(--wrap);margin:0 auto;padding-block:clamp(72px,10vw,128px)}
 .landing .center{text-align:center;display:flex;flex-direction:column;align-items:center;gap:20px}
 .landing .center .lead{text-align:center}

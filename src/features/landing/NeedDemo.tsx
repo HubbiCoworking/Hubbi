@@ -85,8 +85,8 @@ export function NeedDemo() {
                   </div>
                   <div className="tags">{tagsOf(s).map((t) => <span key={t}>{t}</span>)}</div>
                   <div className="space-foot">
-                    <p className="price"><b>{brl(pay)}</b><s>{brl(full)}</s><small>2 h com {DEMO_MEMBER.planDiscount}% do seu plano</small></p>
-                    <Link className="btn btn-primary" to="/login?intent=book">Reservar</Link>
+                    <p className="price"><b>{brl(pay)}</b><s><span className="sr-only">preço cheio </span>{brl(full)}</s><small>2 h com {DEMO_MEMBER.planDiscount}% do seu plano</small></p>
+                    <Link className="btn btn-primary" to="/login?intent=book" aria-label={`Reservar ${s.name}`}>Reservar</Link>
                   </div>
                 </li>
               );

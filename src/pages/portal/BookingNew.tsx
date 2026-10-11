@@ -10,9 +10,12 @@ import { pointsBalance } from '../../domain/points';
 import { priceBooking } from '../../domain/pricing';
 import type { ArrivalMode, Booking } from '../../domain/types';
 import { daysBetween, hhmm, longDay, shortDay } from '../../lib/dates';
-import { brl, formatDuration, round2 } from '../../lib/format';
+import { brl, falta, formatDuration, round2 } from '../../lib/format';
 import { useReducedMotion, useReplayClass } from '../../lib/motion';
 import { useDocumentTitle } from '../../lib/useDocumentTitle';
+import { draftTotals, emptyDraft, type ExtrasDraft } from '../../domain/extras';
+import type { Purpose } from '../../domain/types';
+import { ExtrasCard, MSG_SEPARATE } from '../../features/portal/extras/Extras';
 import { activeSubscription, createBooking, pointsOf, sessionClient, spaceById, useDB } from '../../store/store';
 
 type Scenario = 'live' | 'overdue' | 'taken' | 'confirming';
@@ -39,8 +42,10 @@ const PROBLEM_TEXT: Record<WindowProblem, string> = {
   advance: 'No portal, a reserva precisa começar com pelo menos 1 hora de antecedência. Escolha outro horário ou procure a recepção.',
 };
 
+const PURPOSE_IDS: Purpose[] = ['meeting', 'focus', 'dev', 'creative', 'other'];
+
 /** T07 Resumo da reserva (/app/bookings/new). FR-004, FR-005, FR-025, FR-026;
- *  RN02–RN07, RN12, RN13, RN22, RN23. Textos: ui-messages, seção 2. */
+ *  RN02–RN07, RN12, RN13, RN22, RN23. Comodidades: spec 002, FR-027 a FR-031. Textos: ui-messages, seção 2. */
 export default function BookingNew() {
   useDocumentTitle('Resumo da reserva · Hubbi');
   const db = useDB();
@@ -61,6 +66,9 @@ export default function BookingNew() {
   const [arrival, setArrival] = useState<ArrivalMode | null>(null);
   const [taken, setTaken] = useState(false);
   const [confirming, setConfirming] = useState(false);
+  // Finalidade vem do atalho usado na busca (RN24); pessoas começam nos lugares do espaço (RN26).
+  const [extras, setExtras] = useState<ExtrasDraft>(() =>
+    emptyDraft(space?.seats ?? 1, PURPOSE_IDS.find((p) => p === params.get('need')) ?? null));
   const alertRef = useRef<HTMLDivElement>(null);
   const [formRef, shake] = useReplayClass<HTMLFormElement>('shake', reduce);
 
@@ -81,7 +89,10 @@ export default function BookingNew() {
   const overdue = scenario === 'overdue';
   const membership = overdue ? null : activeSubscription(db, client.id, now);
   const balance = pointsBalance(pointsOf(db, client.id));
-  const canRedeem = balance >= GREEN_POINTS.redeemCost;
+  const extrasTotals = draftTotals(extras);
+  // Pontos dos itens e do resgate saem do mesmo saldo (RN22 ampliada).
+  const canRedeem = balance - extrasTotals.points >= GREEN_POINTS.redeemCost;
+  const pointsForItems = balance - (usePoints && canRedeem ? GREEN_POINTS.redeemCost : 0);
   const price = priceBooking(space.hourly, hours, membership?.plan.discount ?? 0, usePoints && canRedeem ? GREEN_POINTS.redeemDiscount : 0);
   const planOff = round2(price.fullPrice - (price.finalPrice + price.greenDiscount));
   const end = new Date(startDate.getTime() + hours * 3600_000);
@@ -120,6 +131,7 @@ export default function BookingNew() {
       const result = createBooking({
         clientId: client.id, spaceId: space!.id, start: startDate!, hours,
         useGreenPoints: usePoints && canRedeem, arrivalMode: arrival, overdue,
+        purpose: extras.purpose, extras,
       });
       setConfirming(false);
       if (result.ok) {
@@ -206,7 +218,7 @@ export default function BookingNew() {
                 <b>Usar {GREEN_POINTS.redeemCost} pontos verdes</b>
                 <small>{canRedeem
                   ? `${GREEN_POINTS.redeemDiscount}% de desconto nesta reserva. Você tem ${balance} pontos.`
-                  : `Você tem ${balance} pontos. Faltam ${GREEN_POINTS.redeemCost - balance} para trocar por desconto.`}</small>
+                  : `Você tem ${balance} pontos. ${falta(GREEN_POINTS.redeemCost - balance)} ${GREEN_POINTS.redeemCost - balance} para trocar por desconto.`}</small>
               </span>
               <input type="checkbox" role="switch" id="use-points" checked={usePoints && canRedeem} disabled={!canRedeem} onChange={(e) => setUsePoints(e.target.checked)} />
             </label>
@@ -229,6 +241,8 @@ export default function BookingNew() {
             </fieldset>
           </section>
 
+          <ExtrasCard draft={extras} onChange={setExtras} seats={space.seats} balance={pointsForItems} />
+
           <section className="card bn-receipt" aria-labelledby="bn-total-t">
             <h2 id="bn-total-t" className="sr-only">Valores</h2>
             <p className="bn-line-title">{space.name} · {shortDay(startDate)} · {hhmm(startDate)} às {hhmm(end)} ({formatDuration(hours)})</p>
@@ -239,10 +253,21 @@ export default function BookingNew() {
               <div className="sum"><dt>Total</dt><dd>{brl(price.finalPrice)}</dd></div>
             </dl>
             <p className="bn-frozen">Esse valor fica gravado na reserva e não muda depois.</p>
+            {extrasTotals.units > 0 && (
+              <div className="bn-extras-sum">
+                <dl className="bn-rows">
+                  <div><dt>Comodidades (cobrança separada)</dt><dd>{brl(extrasTotals.money)}</dd></div>
+                  {extrasTotals.points > 0 && <div className="minus"><dt>Pagos com pontos</dt><dd>{extrasTotals.points} pontos</dd></div>}
+                </dl>
+                <p className="bn-frozen">{MSG_SEPARATE}</p>
+              </div>
+            )}
             <button className="btn btn-primary btn-block" type="submit" disabled={blocked || isConfirming} aria-busy={isConfirming}>
               {isConfirming
                 ? <><span className="spinner" aria-hidden="true" />Confirmando…</>
-                : <>Confirmar reserva · {brl(price.finalPrice)}</>}
+                : extrasTotals.units > 0
+                  ? <>Confirmar reserva e pedido</>
+                  : <>Confirmar reserva · {brl(price.finalPrice)}</>}
             </button>
             <Link className="btn btn-soft btn-block" to={backToSpaces}>Voltar</Link>
             {blocked && !isConfirming && <p className="muted small center">Escolha outro horário para confirmar.</p>}

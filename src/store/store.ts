@@ -5,14 +5,16 @@ import { cancellationQuote } from '../domain/cancellation';
 import { isActive } from '../domain/booking';
 import { priceBooking } from '../domain/pricing';
 import { currentStreak, pointsBalance } from '../domain/points';
-import type { ArrivalMode, Booking, BookingHistory, Client, PointsEntry, SocialCategory, Subscription } from '../domain/types';
+import { chosenLines, type ExtrasDraft } from '../domain/extras';
+import { extraById } from '../data/extras';
+import type { ArrivalMode, Booking, BookingHistory, Client, ExtrasLine, ExtrasOrder, PointsEntry, Purpose, SocialCategory, Subscription } from '../domain/types';
 import { hashPassword, newId, newSalt } from '../lib/crypto';
 import { buildCommunity, buildSeed, DEMO_CLIENT_ID } from './seed';
 
 /* Dados do protótipo no navegador: um registro versionado no localStorage (TRD 6.1, TD1). */
 
 const KEY = 'hubbi:v2';
-const VERSION = 4;
+const VERSION = 5;
 
 export type DB = {
   version: number;
@@ -21,6 +23,8 @@ export type DB = {
   bookings: Booking[];
   points: PointsEntry[];
   history: BookingHistory[];
+  /** Pedidos de comodidades, um por reserva (spec 002, RN26). */
+  extras: ExtrasOrder[];
   sessionClientId: string | null;
 };
 
@@ -32,7 +36,7 @@ function migrateV3(old: DB): DB {
   const has = (id: string) => old.clients.some((c) => c.id === id);
   return {
     ...old,
-    version: VERSION,
+    version: 4,
     clients: [...old.clients, ...extra.clients.filter((c) => !has(c.id))],
     subscriptions: [...old.subscriptions, ...extra.subscriptions.filter((s) => !old.subscriptions.some((o) => o.id === s.id))],
     bookings: [...old.bookings, ...extra.bookings.filter((b) => !old.bookings.some((o) => o.id === b.id))],
@@ -40,7 +44,7 @@ function migrateV3(old: DB): DB {
 }
 
 function fresh(): DB {
-  return { version: VERSION, sessionClientId: null, history: [], ...buildSeed() };
+  return { version: VERSION, sessionClientId: null, history: [], extras: [], ...buildSeed() };
 }
 
 function load(): DB {
@@ -49,9 +53,13 @@ function load(): DB {
     if (raw) {
       const parsed = JSON.parse(raw) as DB;
       if (parsed.version === VERSION) return parsed;
-      // v2 → v3: acrescenta o histórico de estados, sem perder contas e reservas já criadas.
-      if (parsed.version === 2 || parsed.version === 3) {
-        const migrated = migrateV3(parsed.version === 2 ? { ...parsed, history: [], version: 3 } : parsed);
+      if (parsed.version >= 2 && parsed.version <= 4) {
+        let migrated = parsed;
+        // v2 → v3: acrescenta o histórico de estados, sem perder contas e reservas já criadas.
+        if (migrated.version === 2) migrated = { ...migrated, history: [], version: 3 };
+        if (migrated.version === 3) migrated = migrateV3(migrated);
+        // v4 → v5: acrescenta os pedidos de comodidades (spec 002), vazios.
+        if (migrated.version === 4) migrated = { ...migrated, extras: [], version: 5 };
         save(migrated);
         return migrated;
       }
@@ -177,6 +185,9 @@ export type NewBooking = {
   hours: number;
   useGreenPoints: boolean;
   arrivalMode: ArrivalMode | null;
+  /** Finalidade (RN24) e comodidades pedidas no resumo (RN26). */
+  purpose?: Purpose | null;
+  extras?: ExtrasDraft | null;
   /** Protótipo: membro com cobrança vencida reserva como avulso (RN13). */
   overdue?: boolean;
 };
@@ -191,7 +202,8 @@ export function createBooking(input: NewBooking): CreateResult {
   if (!isFree(space.id, input.start, input.hours, db.bookings)) return { ok: false, reason: 'taken' };
   const membership = input.overdue ? null : activeSubscription(db, input.clientId);
   const balance = pointsBalance(pointsOf(db, input.clientId));
-  if (input.useGreenPoints && balance < GREEN_POINTS.redeemCost) return { ok: false, reason: 'points' };
+  const extrasPoints = input.extras ? chosenLines(input.extras).reduce((s, l) => s + l.pointsUnits * (l.item.points ?? 0), 0) : 0;
+  if (balance < (input.useGreenPoints ? GREEN_POINTS.redeemCost : 0) + extrasPoints) return { ok: false, reason: 'points' };
 
   const now = new Date().toISOString();
   const price = priceBooking(space.hourly, input.hours, membership?.plan.discount ?? 0, input.useGreenPoints ? GREEN_POINTS.redeemDiscount : 0);
@@ -207,14 +219,142 @@ export function createBooking(input: NewBooking): CreateResult {
     createdAt: now,
     planName: membership?.plan.name ?? null,
     arrivalMode: input.arrivalMode,
+    purpose: input.purpose ?? null,
     ...price,
   };
   const history: BookingHistory = { id: newId('hs'), bookingId: booking.id, from: null, to: state, at: now, by: 'client' };
   const redeem: PointsEntry[] = input.useGreenPoints
     ? [{ id: newId('pt'), clientId: input.clientId, date: now, kind: 'redeem', points: -GREEN_POINTS.redeemCost, label: `Resgate de desconto · ${space.name}`, bookingId: booking.id }]
     : [];
-  commit({ ...db, bookings: [...db.bookings, booking], history: [...db.history, history], points: [...db.points, ...redeem] });
+  const order = input.extras && chosenLines(input.extras).length ? buildOrder(booking, input.extras, now) : null;
+  commit({
+    ...db,
+    bookings: [...db.bookings, booking],
+    history: [...db.history, history],
+    points: [...db.points, ...redeem, ...(order?.points ?? [])],
+    extras: order ? [...db.extras, order.order] : db.extras,
+  });
   return { ok: true, booking };
+}
+
+// ---------- Comodidades (spec 002: RN22 ampliada, RN26, RN27) ----------
+
+export const extrasOf = (d: DB, bookingId: string) => d.extras.find((o) => o.bookingId === bookingId) ?? null;
+
+/** Linhas gravadas a partir do rascunho, com preços do cardápio, e os débitos de pontos. */
+function draftToLines(booking: Booking, draft: ExtrasDraft, at: string) {
+  const lines: ExtrasLine[] = [];
+  const points: PointsEntry[] = [];
+  const space = spaceById(booking.spaceId)?.name ?? '';
+  for (const l of chosenLines(draft)) {
+    const line: ExtrasLine = { id: newId('xl'), itemId: l.item.id, qty: l.qty, unitPrice: l.item.price, unitPoints: l.item.points, pointsUnits: l.item.points ? l.pointsUnits : 0, state: 'to_deliver', orderedAt: at };
+    lines.push(line);
+    if (line.pointsUnits && line.unitPoints) {
+      points.push({ id: newId('pt'), clientId: booking.clientId, date: at, kind: 'extra_redeem', points: -line.pointsUnits * line.unitPoints, label: `Troca por item: ${line.pointsUnits}× ${l.item.name} · ${space}`, bookingId: booking.id });
+    }
+  }
+  return { lines, points };
+}
+
+function buildOrder(booking: Booking, draft: ExtrasDraft, at: string) {
+  const { lines, points } = draftToLines(booking, draft, at);
+  const order: ExtrasOrder = { id: newId('xo'), bookingId: booking.id, clientId: booking.clientId, purpose: draft.purpose, people: draft.people, noDisposables: draft.noDisposables, createdAt: at, lines, paid: 0 };
+  return { order, points };
+}
+
+export type ExtrasResult = { ok: true } | { ok: false; reason: 'not_found' | 'closed' | 'points' | 'empty' | 'delivered' };
+
+/** Pede comodidades depois de reservar (T12). Soma ao pedido da reserva: uma cobrança por reserva
+ *  (Clarificação 1 da spec 002). */
+export function addExtras(bookingId: string, draft: ExtrasDraft): ExtrasResult {
+  const b = db.bookings.find((x) => x.id === bookingId);
+  if (!b) return { ok: false, reason: 'not_found' };
+  if (!isActive(b) || new Date(b.end) <= new Date()) return { ok: false, reason: 'closed' };
+  if (!chosenLines(draft).length) return { ok: false, reason: 'empty' };
+  const need = chosenLines(draft).reduce((s, l) => s + l.pointsUnits * (l.item.points ?? 0), 0);
+  if (need > pointsBalance(pointsOf(db, b.clientId))) return { ok: false, reason: 'points' };
+  const at = new Date().toISOString();
+  const current = extrasOf(db, bookingId);
+  if (current) {
+    const { lines, points } = draftToLines(b, draft, at);
+    const order: ExtrasOrder = { ...current, people: draft.people, noDisposables: current.noDisposables || draft.noDisposables, purpose: current.purpose ?? draft.purpose, lines: [...current.lines, ...lines] };
+    commit({ ...db, extras: db.extras.map((o) => (o.id === current.id ? order : o)), points: [...db.points, ...points] });
+  } else {
+    const { order, points } = buildOrder(b, draft, at);
+    commit({ ...db, extras: [...db.extras, order], points: [...db.points, ...points] });
+  }
+  return { ok: true };
+}
+
+/** Cancela linhas a entregar e devolve os pontos como lançamento novo, datado de agora
+ *  (RN27; Clarificação 3). Devolve o pedido e os lançamentos, sem gravar. */
+function cancelLines(order: ExtrasOrder, which: (l: ExtrasLine) => boolean, at: string) {
+  const refunds: PointsEntry[] = [];
+  const lines = order.lines.map((l) => {
+    if (l.state !== 'to_deliver' || !which(l)) return l;
+    if (l.pointsUnits && l.unitPoints) {
+      refunds.push({ id: newId('pt'), clientId: order.clientId, date: at, kind: 'extra_refund', points: l.pointsUnits * l.unitPoints, label: `Devolução: ${l.pointsUnits}× ${extraById(l.itemId)?.name ?? 'item'} cancelado`, bookingId: order.bookingId });
+    }
+    return { ...l, state: 'cancelled' as const, cancelledAt: at };
+  });
+  return { order: { ...order, lines }, refunds };
+}
+
+/** Cliente cancela um item ainda não entregue, sem custo (RN27). */
+export function cancelExtrasLine(bookingId: string, lineId: string): ExtrasResult {
+  const order = extrasOf(db, bookingId);
+  const line = order?.lines.find((l) => l.id === lineId);
+  if (!order || !line) return { ok: false, reason: 'not_found' };
+  if (line.state !== 'to_deliver') return { ok: false, reason: 'delivered' };
+  const r = cancelLines(order, (l) => l.id === lineId, new Date().toISOString());
+  commit({ ...db, extras: db.extras.map((o) => (o.id === order.id ? r.order : o)), points: [...db.points, ...r.refunds] });
+  return { ok: true };
+}
+
+/** Reserva encerrada (cancelada, expirada, concluída, no-show ou fim do horário): itens a entregar
+ *  caem sem custo e os pontos voltam (RN27; Clarificação 2). Devolve o db com o ajuste. */
+function settled(d: DB, bookingIds: Set<string>): DB {
+  if (!bookingIds.size) return d;
+  const at = new Date().toISOString();
+  const refunds: PointsEntry[] = [];
+  let changed = false;
+  const extras = d.extras.map((o) => {
+    if (!bookingIds.has(o.bookingId) || !o.lines.some((l) => l.state === 'to_deliver')) return o;
+    const r = cancelLines(o, () => true, at);
+    refunds.push(...r.refunds);
+    changed = true;
+    return r.order;
+  });
+  return changed ? { ...d, extras, points: [...d.points, ...refunds] } : d;
+}
+
+/** Varre reservas cujo horário terminou e ainda têm itens a entregar (Clarificação 2). */
+export function sweepEndedExtras() {
+  const now = new Date();
+  const ended = new Set(db.extras.filter((o) => {
+    const b = db.bookings.find((x) => x.id === o.bookingId);
+    return b && (!isActive(b) || new Date(b.end) <= now) && o.lines.some((l) => l.state === 'to_deliver');
+  }).map((o) => o.bookingId));
+  if (ended.size) commit(settled(db, ended));
+}
+
+/** Simulação da cozinha: entrega o próximo item a entregar (FR-034). */
+export function deliverNextExtra(bookingId: string): string | null {
+  const order = extrasOf(db, bookingId);
+  const line = order?.lines.find((l) => l.state === 'to_deliver');
+  if (!order || !line) return null;
+  const at = new Date().toISOString();
+  const next = { ...order, lines: order.lines.map((l) => (l.id === line.id ? { ...l, state: 'delivered' as const, deliveredAt: at } : l)) };
+  commit({ ...db, extras: db.extras.map((o) => (o.id === order.id ? next : o)) });
+  return extraById(line.itemId)?.name ?? 'Item';
+}
+
+/** Simulação da recepção: registra o pagamento do valor em aberto das comodidades (FR-034). */
+export function registerExtrasPayment(bookingId: string, amount: number): boolean {
+  const order = extrasOf(db, bookingId);
+  if (!order || amount <= 0) return false;
+  commit({ ...db, extras: db.extras.map((o) => (o.id === order.id ? { ...o, paid: Math.round((o.paid + amount) * 100) / 100 } : o)) });
+  return true;
 }
 
 // ---------- Ciclo de vida da reserva (RN08) ----------
@@ -226,12 +366,14 @@ function transition(id: string, to: Booking['state'], by: BookingHistory['by'], 
   const next: Booking = { ...current, ...patch, state: to };
   const at = new Date().toISOString();
   const history: BookingHistory[] = current.state === to ? [] : [{ id: newId('hs'), bookingId: id, from: current.state, to, at, by }];
-  commit({
+  const updated: DB = {
     ...db,
     bookings: db.bookings.map((b) => (b.id === id ? next : b)),
     history: [...db.history, ...history],
     points: [...db.points, ...extraPoints],
-  });
+  };
+  // Saiu de pendente/confirmada: itens de comodidades ainda a entregar caem sem custo (RN27).
+  commit(isActive(next) ? updated : settled(updated, new Set([id])));
   return next;
 }
 

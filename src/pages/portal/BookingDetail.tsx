@@ -9,14 +9,21 @@ import { bookingHours, isActive, paymentDeadline, STATE_LABEL } from '../../doma
 import { cancellationQuote, formatTimeLeft, type CancelQuote } from '../../domain/cancellation';
 import type { ArrivalMode, Booking, BookingHistory } from '../../domain/types';
 import { daysBetween, ddmmyyyy, hhmm, longDay, shortDay } from '../../lib/dates';
-import { brl, formatDuration, round2 } from '../../lib/format';
+import { brl, faltaTempo, formatDuration, round2 } from '../../lib/format';
 import { useDocumentTitle } from '../../lib/useDocumentTitle';
+import { canOrderExtras, emptyDraft, orderTotals } from '../../domain/extras';
+import { pointsBalance } from '../../domain/points';
+import type { ExtrasLine } from '../../domain/types';
+import { extraById } from '../../data/extras';
+import { Dialog } from '../../features/portal/Dialog';
+import { ExtrasPicker, ExtrasStatus } from '../../features/portal/extras/Extras';
 import {
   cancelBooking, completeBooking, expireBooking, historyOf, markNoShow, registerPayment, resetDemoData,
   sessionClient, simulateStartIn, spaceById, useDB, type ActionResult,
+  addExtras, cancelExtrasLine, deliverNextExtra, extrasOf, pointsOf, registerExtrasPayment, sweepEndedExtras,
 } from '../../store/store';
 
-type ProtoAction = 'pay' | 'complete' | 'noshow' | 'expire' | 'in5h' | 'in90m' | 'reset';
+type ProtoAction = 'pay' | 'complete' | 'noshow' | 'expire' | 'in5h' | 'in90m' | 'deliver' | 'xpay' | 'reset';
 
 const ARRIVAL_LABEL: Record<ArrivalMode, string> = {
   walk: 'A pé', bike: 'Bicicleta', transit: 'Transporte público', carpool: 'Carona', electric: 'Veículo elétrico',
@@ -48,6 +55,11 @@ export default function BookingDetail() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [toast, setToast] = useState<{ text: string; tone: 'ok' | 'err' } | null>(null);
   const cancelBtnRef = useRef<HTMLButtonElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [lineToCancel, setLineToCancel] = useState<ExtrasLine | null>(null);
+
+  // Itens ainda a entregar em reserva que já terminou caem sem custo (spec 002, Clarificação 2).
+  useEffect(() => { sweepEndedExtras(); }, [now]);
 
   // Vindo de "Cancelar" na lista (?cancel=1), abre o painel direto.
   useEffect(() => {
@@ -97,6 +109,9 @@ export default function BookingDetail() {
     return list;
   })();
   const quote = cancellationQuote(booking, now);
+  const order = extrasOf(db, booking.id);
+  const extras = orderTotals(order);
+  const canOrder = canOrderExtras(booking, now);
 
   const finalReason = !active
     ? `Esta reserva não pode mais ser cancelada porque está ${STATE_LABEL[booking.state].toLowerCase()}.`
@@ -126,12 +141,24 @@ export default function BookingDetail() {
     ...(active ? [{ id: 'pay' as const, label: paid >= booking.finalPrice ? 'Recepção: pagamento já registrado' : 'Recepção registra pagamento' }] : []),
     ...(booking.state === 'confirmed' ? [{ id: 'complete' as const, label: 'Recepção conclui' }, { id: 'noshow' as const, label: 'Recepção marca não compareceu' }] : []),
     ...(booking.state === 'pending' ? [{ id: 'expire' as const, label: 'Prazo de pagamento vence' }] : []),
+    ...(order?.lines.some((l) => l.state === 'to_deliver') ? [{ id: 'deliver' as const, label: 'Cozinha entrega o próximo item' }] : []),
+    ...(extras.open > 0 ? [{ id: 'xpay' as const, label: `Recepção recebe as comodidades (${brl(extras.open)})` }] : []),
     ...(canCancel ? [{ id: 'in5h' as const, label: 'Simular: faltam 5 h para o início' }, { id: 'in90m' as const, label: 'Simular: faltam 90 min para o início' }] : []),
     { id: 'reset', label: 'Restaurar dados de exemplo' },
   ];
 
   const onProto = (a: ProtoAction) => {
     if (a === 'reset') { resetDemoData(); setToast({ tone: 'ok', text: 'Dados de exemplo restaurados.' }); return; }
+    if (a === 'deliver') {
+      const name = deliverNextExtra(booking.id);
+      setToast({ tone: 'ok', text: name ? `Cozinha entregou: ${name}.` : 'Não há item a entregar.' });
+      return;
+    }
+    if (a === 'xpay') {
+      registerExtrasPayment(booking.id, extras.open);
+      setToast({ tone: 'ok', text: `Recepção registrou o pagamento das comodidades: ${brl(extras.open)}.` });
+      return;
+    }
     if (a === 'in5h' || a === 'in90m') {
       simulateStartIn(booking.id, a === 'in5h' ? 300 : 90);
       setNow(new Date());
@@ -206,6 +233,8 @@ export default function BookingDetail() {
               <p className="bn-frozen">O valor fica gravado na reserva: não muda se o preço do espaço ou o seu plano mudarem.</p>
             </section>
 
+            <ExtrasStatus order={order} editable={active} canOrder={canOrder} onAdd={() => setPickerOpen(true)} onCancelLine={setLineToCancel} />
+
             {booking.cancellation && (
               <section className="card" aria-labelledby="dt-cancel-t">
                 <h2 id="dt-cancel-t">Cancelamento</h2>
@@ -243,7 +272,7 @@ export default function BookingDetail() {
               <h2 id="dt-actions-t">Ações</h2>
               {canCancel ? (
                 <>
-                  <p className="muted small">{quote.band === 'unpaid' ? 'Sem pagamento registrado: cancelar não gera multa.' : quote.feePct === 0 ? `Faltam ${formatTimeLeft(quote.msLeft)}: cancelar agora não gera multa.` : `Faltam ${formatTimeLeft(quote.msLeft)}: cancelar agora gera multa de ${quote.feePct}%.`}</p>
+                  <p className="muted small">{quote.band === 'unpaid' ? 'Sem pagamento registrado: cancelar não gera multa.' : quote.feePct === 0 ? `${faltaTempo(formatTimeLeft(quote.msLeft))} ${formatTimeLeft(quote.msLeft)}: cancelar agora não gera multa.` : `${faltaTempo(formatTimeLeft(quote.msLeft))} ${formatTimeLeft(quote.msLeft)}: cancelar agora gera multa de ${quote.feePct}%.`}</p>
                   <button ref={cancelBtnRef} type="button" className="btn btn-danger-soft btn-block" onClick={() => setDialogOpen(true)}>Cancelar reserva</button>
                 </>
               ) : (
@@ -263,6 +292,38 @@ export default function BookingDetail() {
           </aside>
         </div>
       </div>
+
+      {pickerOpen && space && (
+        <ExtrasPicker
+          initial={emptyDraft(order?.people ?? space.seats, order?.purpose ?? booking.purpose ?? null)}
+          seats={space.seats}
+          balance={pointsBalance(pointsOf(db, client.id))}
+          withSetup
+          confirmLabel="Pedir itens"
+          onClose={() => setPickerOpen(false)}
+          onConfirm={(d) => {
+            const r = addExtras(booking.id, d);
+            setPickerOpen(false);
+            setToast(r.ok
+              ? { tone: 'ok', text: 'Pedido feito. Entregamos no seu espaço durante a reserva.' }
+              : { tone: 'err', text: r.reason === 'empty' ? 'Escolha ao menos um item.' : r.reason === 'points' ? 'Seus pontos não são suficientes para esses itens.' : 'Esta reserva já terminou. Não é possível pedir comodidades.' });
+          }}
+        />
+      )}
+
+      {lineToCancel && (
+        <Dialog title={`Cancelar ${extraById(lineToCancel.itemId)?.name ?? 'item'}?`} describedBy="xl-cancel-d" onClose={() => setLineToCancel(null)}>
+          <p id="xl-cancel-d" className="muted">Ele ainda não foi entregue, então não há custo.{lineToCancel.pointsUnits > 0 ? ` Os ${lineToCancel.pointsUnits * (lineToCancel.unitPoints ?? 0)} pontos usados voltam para o seu saldo.` : ''}</p>
+          <div className="dialog-actions">
+            <button type="button" className="btn btn-soft" onClick={() => setLineToCancel(null)}>Manter</button>
+            <button type="button" className="btn btn-danger" onClick={() => {
+              const r = cancelExtrasLine(booking.id, lineToCancel.id);
+              setLineToCancel(null);
+              setToast(r.ok ? { tone: 'ok', text: 'Item cancelado sem custo.' } : { tone: 'err', text: 'Este item já foi entregue e não pode ser cancelado.' });
+            }}>Cancelar item</button>
+          </div>
+        </Dialog>
+      )}
 
       {dialogOpen && <CancelDialog booking={booking} spaceName={space?.name ?? 'Espaço'} quote={quote} onClose={closeDialog} onConfirm={confirmCancel} />}
 
@@ -304,9 +365,9 @@ function CancelDialog({ booking, spaceName, quote, onClose, onConfirm }: {
   const left = formatTimeLeft(quote.msLeft);
   const lead = {
     unpaid: 'Esta reserva ainda não foi paga. Cancelar não gera multa nem estorno.',
-    free: `Faltam ${left} para o início. Cancelamento sem multa.`,
-    half: `Faltam ${left} para o início. Multa de 50% do valor da reserva.`,
-    full: `Faltam ${left} para o início. Multa de 100% do valor da reserva.`,
+    free: `${faltaTempo(left)} ${left} para o início. Cancelamento sem multa.`,
+    half: `${faltaTempo(left)} ${left} para o início. Multa de 50% do valor da reserva.`,
+    full: `${faltaTempo(left)} ${left} para o início. Multa de 100% do valor da reserva.`,
   }[quote.band];
 
   return (

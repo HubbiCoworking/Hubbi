@@ -32,6 +32,8 @@ export type Booking = {
   planName: string | null;
   greenDiscount: number;
   finalPrice: number;
+  /** Finalidade informada ao reservar (RN24). Só sugere comodidades. */
+  purpose?: Purpose | null;
   /** Meio de chegada informado pelo cliente; a recepção confirma ao concluir (RN23). */
   arrivalMode?: ArrivalMode | null;
   /** A recepção confirmou o meio de chegada informado (RN23). */
@@ -96,7 +98,7 @@ export type PointsEntry = {
   id: string;
   clientId: string;
   date: string;
-  kind: 'completed' | 'streak' | 'clean_arrival' | 'redeem' | 'refund' | 'expired';
+  kind: 'completed' | 'streak' | 'clean_arrival' | 'redeem' | 'refund' | 'expired' | 'extra_redeem' | 'extra_refund';
   points: number;
   label: string;
   bookingId?: string;
@@ -109,4 +111,39 @@ export type StoredSpace = {
   floor: string;
   seats: number;
   hourly: number;
+};
+
+/** Finalidade da reserva (RN24). Os quatro primeiros são os atalhos de necessidade da busca (RN20). */
+export type Purpose = 'meeting' | 'focus' | 'dev' | 'creative' | 'other';
+
+export type ExtrasLineState = 'to_deliver' | 'delivered' | 'cancelled';
+
+/** Uma linha do pedido de comodidades, com preços gravados no pedido (RN26). */
+export type ExtrasLine = {
+  id: string;
+  itemId: string;
+  qty: number;
+  unitPrice: number;
+  /** Preço em pontos gravado; null quando o item não aceita troca (RN22 ampliada). */
+  unitPoints: number | null;
+  /** Quantas unidades foram pagas com pontos. */
+  pointsUnits: number;
+  state: ExtrasLineState;
+  orderedAt: string;
+  deliveredAt?: string;
+  cancelledAt?: string;
+};
+
+/** Pedido de comodidades: um por reserva, cobrado à parte (RN26, Clarificação 2026-10-11). */
+export type ExtrasOrder = {
+  id: string;
+  bookingId: string;
+  clientId: string;
+  purpose: Purpose | null;
+  people: number;
+  noDisposables: boolean;
+  createdAt: string;
+  lines: ExtrasLine[];
+  /** Valor já pago na recepção. */
+  paid: number;
 };

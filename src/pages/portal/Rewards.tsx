@@ -6,6 +6,7 @@ import { GREEN_POINTS } from '../../data/catalog';
 import { currentStreak, pointsBalance, POINTS_VALID_MONTHS, redeemProgress } from '../../domain/points';
 import type { ArrivalMode, PointsEntry } from '../../domain/types';
 import { ddmmyyyy, shortDay } from '../../lib/dates';
+import { falta } from '../../lib/format';
 import { useDocumentTitle } from '../../lib/useDocumentTitle';
 import { bookingsOf, confirmArrival, pointsOf, resetDemoData, sessionClient, spaceById, useDB } from '../../store/store';
 
@@ -14,6 +15,7 @@ const ARRIVAL_LABEL: Record<ArrivalMode, string> = { walk: 'a pé', bike: 'de bi
 const KIND_LABEL: Record<PointsEntry['kind'], string> = {
   completed: 'Reserva concluída', streak: 'Bônus de sequência', clean_arrival: 'Chegada limpa',
   redeem: 'Resgate', refund: 'Devolução', expired: 'Vencimento',
+  extra_redeem: 'Troca por item', extra_refund: 'Devolução',
 };
 const monthFmt = new Intl.DateTimeFormat('pt-BR', { month: 'long', year: 'numeric' });
 
@@ -35,8 +37,10 @@ export default function Rewards() {
   const balance = pointsBalance(entries);
   const { cost, canRedeem, progress, missing } = redeemProgress(balance);
   const streak = currentStreak(bookings) % STREAK_SIZE;
-  const earned = entries.filter((e) => e.points > 0).reduce((s, e) => s + e.points, 0);
-  const used = -entries.filter((e) => e.points < 0).reduce((s, e) => s + e.points, 0);
+  // Devoluções desfazem um uso: abatem de "Usados" em vez de contar como ganho.
+  const isRefund = (e: PointsEntry) => e.kind === 'refund' || e.kind === 'extra_refund';
+  const earned = entries.filter((e) => e.points > 0 && !isRefund(e)).reduce((s, e) => s + e.points, 0);
+  const used = -entries.filter((e) => e.points < 0 || isRefund(e)).reduce((s, e) => s + e.points, 0);
   const oldestPositive = [...entries].reverse().find((e) => e.points > 0);
   const nextExpiry = oldestPositive ? new Date(new Date(oldestPositive.date).setMonth(new Date(oldestPositive.date).getMonth() + POINTS_VALID_MONTHS)) : null;
 
@@ -88,7 +92,7 @@ export default function Rewards() {
               <p className="rw-hint">
                 {canRedeem
                   ? `Você já pode trocar ${cost} pontos por ${GREEN_POINTS.redeemDiscount}% de desconto em uma reserva.`
-                  : balance === 0 ? 'Conclua sua primeira reserva para ganhar 10 pontos.' : `Faltam ${missing} pontos para ${GREEN_POINTS.redeemDiscount}% de desconto em uma reserva.`}
+                  : balance === 0 ? 'Conclua sua primeira reserva para ganhar 10 pontos.' : `${falta(missing)} ${missing} ${missing === 1 ? 'ponto' : 'pontos'} para ${GREEN_POINTS.redeemDiscount}% de desconto em uma reserva.`}
               </p>
               <div className="rw-foot">
                 <dl className="rw-stats">
@@ -112,7 +116,7 @@ export default function Rewards() {
               <p className="muted">
                 {streak === 0
                   ? 'Conclua reservas seguidas, sem faltar, para ganhar o bônus.'
-                  : `${streak} de ${STREAK_SIZE}. Faltam ${STREAK_SIZE - streak} reservas concluídas para o bônus. Faltar ou cancelar com multa recomeça a contagem.`}
+                  : `${streak} de ${STREAK_SIZE}. ${falta(STREAK_SIZE - streak)} ${STREAK_SIZE - streak} ${STREAK_SIZE - streak === 1 ? 'reserva concluída' : 'reservas concluídas'} para o bônus. Faltar ou cancelar com multa recomeça a contagem.`}
               </p>
             </section>
 
