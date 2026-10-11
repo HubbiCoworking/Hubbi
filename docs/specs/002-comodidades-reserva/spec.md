@@ -27,7 +27,13 @@
 
 ## Clarifications
 
-_(a preencher na etapa de clarificação)_
+### Session 2026-10-11
+
+- Q: Pedidos feitos depois, no detalhe da reserva, entram na mesma cobrança ou geram outra? → A: Na mesma. Cada reserva tem **uma** cobrança de comodidades; novos pedidos somam itens a ela.
+- Q: Item ainda *a entregar* quando a reserva acaba (fim do horário, concluída ou no-show)? → A: É cancelado sem custo e os pontos voltam.
+- Q: Com que validade voltam os pontos de item cancelado? → A: Voltam como lançamento novo, datado da devolução; a validade conta a partir dessa data.
+- Q: "Sem descartáveis" dá pontos verdes? → A: Não. É só preferência; a RN22 só pontua eventos registrados pela equipe.
+- Q: O cardápio aparece na busca de espaços (T04)? → A: Não. As comodidades aparecem a partir do resumo (T07).
 
 ## Atores
 
@@ -129,23 +135,26 @@ em um item e cancelar o outro: o primeiro fica cobrado e o segundo some do total
     quantidade (0 a 50 unidades por pedido).
   - Valor = soma de quantidade × preço de cada item, **sem desconto do plano** (RN13 não se
     aplica). Preço em reais, preço em pontos e quantidade são **gravados** no pedido.
-  - O valor das comodidades é uma **cobrança separada**, ligada ao cliente e à reserva, com
+  - Cada reserva tem **uma** cobrança de comodidades; pedidos feitos depois, no detalhe, somam
+    itens a ela. O valor das comodidades é uma **cobrança separada**, ligada ao cliente e à reserva, com
     situação *pendente*, *realizado* ou *cancelado* (Princípio IV). Fica pendente até a equipe
     registrar o pagamento na recepção, como a reserva (RN12); não altera o estado da reserva.
   - A cozinha entrega em qualquer momento **dentro do horário da reserva**; não há horário
     marcado de entrega.
   - Cada item passa por: *a entregar* → *entregue* ou *a entregar* → *cancelado*.
-  - Opção **"Sem descartáveis"** por pedido (canecas e copos da casa); não muda preço.
+  - Opção **"Sem descartáveis"** por pedido (canecas e copos da casa); não muda preço e não dá
+    pontos verdes.
 
 - **RN27 — Cancelamento das comodidades**: item *a entregar* pode ser cancelado pelo cliente a
   qualquer momento, **sem custo**; os pontos usados nele voltam ao saldo. Item *entregue* não pode
-  ser cancelado e é cobrado. Quando a reserva é cancelada (RN07) ou expira (RN12), os itens *a
-  entregar* são cancelados sem custo, e a multa da RN07 continua valendo só para o espaço.
+  ser cancelado e é cobrado. Quando a reserva é cancelada (RN07) ou expira (RN12), e quando ela
+  termina (fim do horário, *concluída* ou *no-show*), os itens *a entregar* são cancelados sem custo, e a multa da RN07 continua valendo só para o espaço.
 
 - **RN22 (ampliada) — Troca de pontos por itens**: além do desconto na reserva, itens com preço
   em pontos podem ser pagos com pontos, **unidade por unidade**, até o saldo disponível. Os
   pontos saem do saldo quando o pedido é confirmado, com lançamento no extrato (tipo *troca por
-  item*), e voltam (tipo *devolução*) se o item for cancelado (RN27).
+  item*), e voltam (tipo *devolução*) se o item for cancelado (RN27). A devolução é um lançamento novo,
+  datado do cancelamento, e a validade dos pontos conta a partir dessa data.
 
 ### Functional Requirements
 
